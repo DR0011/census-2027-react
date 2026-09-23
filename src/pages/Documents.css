@@ -1,0 +1,342 @@
+.documents-page {
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+  color: #222;
+  min-height: 100vh;
+}
+
+.documents-page .container {
+  width: 95%;
+  max-width: 1400px;
+  margin: 25px auto;
+}
+
+.documents-page .header {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.documents-page .search-box input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 15px;
+  outline: none;
+}
+
+.documents-page .search-box input:focus {
+  border-color: #2563eb;
+}
+
+.documents-page .mobile-sort-bar {
+  display: none;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.documents-page .mobile-sort-bar select {
+  flex: 1;
+  height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 14px;
+  background: #ffffff;
+  color: #17365d;
+}
+
+.documents-page .mobile-sort-bar button {
+  width: 50px;
+  height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #17365d;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.documents-page .table-container {
+  width: 100%;
+  overflow-x: auto;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.documents-page table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.documents-page thead {
+  background: #17365d;
+  color: #ffffff;
+}
+
+.documents-page th {
+  padding: 13px 10px;
+  text-align: center;
+  font-size: 14px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.documents-page th[data-sortable] {
+  cursor: pointer;
+}
+
+.documents-page th[data-sortable]:hover {
+  background: #173276;
+}
+
+.documents-page tbody td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.documents-page tbody tr:hover {
+  background: #f8fafc;
+}
+
+.documents-page tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.documents-page .description {
+  text-align: left !important;
+  min-width: 250px;
+  line-height: 1.4;
+}
+
+.documents-page .pdf-buttons {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.documents-page .pdf-btn {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #1e3a8a;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.documents-page .pdf-btn:hover {
+  background: #f1f5f9;
+  border-color: #1e3a8a;
+}
+
+.documents-page .no-pdf {
+  color: #999;
+  font-size: 13px;
+}
+
+.documents-page .loading {
+  text-align: center;
+  padding: 30px;
+  font-size: 16px;
+  color: #555;
+}
+
+.documents-page .error {
+  text-align: center;
+  padding: 20px;
+  color: #dc2626;
+  font-weight: bold;
+}
+
+.documents-page .no-data {
+  text-align: center;
+  padding: 25px;
+  color: #777;
+}
+
+@media (max-width: 1024px) and (min-width: 721px) {
+  .documents-page .container {
+    width: 97%;
+    margin: 15px auto;
+  }
+
+  .documents-page .header {
+    padding: 16px;
+  }
+
+  .documents-page table {
+    min-width: 850px;
+  }
+
+  .documents-page th {
+    font-size: 12px;
+    padding: 10px 7px;
+  }
+
+  .documents-page tbody td {
+    font-size: 12px;
+    padding: 9px 7px;
+  }
+
+  .documents-page .description {
+    min-width: 220px;
+  }
+
+  .documents-page .pdf-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 720px) {
+  .documents-page .container {
+    width: 100%;
+    margin: 0;
+    padding: 8px;
+  }
+
+  .documents-page .header {
+    padding: 14px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+
+  .documents-page .search-box input {
+    font-size: 14px;
+    padding: 11px 12px;
+  }
+
+  .documents-page .mobile-sort-bar {
+    display: flex;
+  }
+
+  .documents-page .table-container {
+    overflow-x: visible;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .documents-page table {
+    width: 100%;
+    min-width: 0;
+    display: block;
+  }
+
+  .documents-page thead {
+    display: none;
+  }
+
+  .documents-page tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .documents-page tbody tr {
+    display: block;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: #ffffff;
+    border: 1px solid #d8dee6;
+    border-radius: 9px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  .documents-page tbody tr:hover {
+    background: #ffffff;
+  }
+
+  .documents-page tbody td {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 9px 0;
+    border-bottom: 1px solid #edf0f3;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .documents-page tbody td:last-child {
+    border-bottom: none;
+  }
+
+  .documents-page tbody td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #17365d;
+  }
+
+  .documents-page tbody td:first-child {
+    padding-top: 2px;
+    padding-bottom: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #17365d;
+    border-bottom: 1px solid #dfe5ec;
+  }
+
+  .documents-page tbody td:first-child::before {
+    content: 'Sr No';
+  }
+
+  .documents-page tbody td.description {
+    text-align: left !important;
+    min-width: 0;
+  }
+
+  .documents-page .pdf-buttons {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 7px;
+  }
+
+  .documents-page .pdf-btn {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    padding: 8px 9px;
+    font-size: 12px;
+  }
+
+  .documents-page .no-pdf {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .documents-page .mobile-sort-bar select {
+    font-size: 12px;
+  }
+
+  .documents-page .mobile-sort-bar button {
+    width: 44px;
+  }
+
+  .documents-page tbody td {
+    font-size: 12px;
+  }
+
+  .documents-page .pdf-btn {
+    min-width: 0;
+    font-size: 11px;
+  }
+}
