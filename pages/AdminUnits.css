@@ -1,0 +1,566 @@
+/* =========================================================
+   CENSUS 2027 - ADMINISTRATIVE UNITS
+   Responsive layout: desktop + tablet + mobile
+   On tablet/mobile the DATA TABLE remains visible and
+   scrolls horizontally instead of changing to cards.
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+.admin-page {
+  min-height: 100vh;
+  width: 100%;
+  padding: 24px;
+  background: #f5f8fc;
+  color: #17365d;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ================= HEADER ================= */
+
+.admin-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  background: #17365d;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(23, 54, 93, 0.12);
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.admin-header p {
+  margin: 6px 0 0;
+  font-size: 15px;
+  opacity: 0.9;
+}
+
+/* ================= COUNT BOXES ================= */
+
+.count-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.count-box {
+  min-width: 0;
+  min-height: 105px;
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #d9e2ef;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(23, 54, 93, 0.07);
+  overflow: hidden;
+}
+
+.count-box span {
+  display: block;
+  width: 100%;
+  margin: 0;
+  color: #52657d;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.count-box strong {
+  display: block;
+  width: 100%;
+  margin: 0;
+  color: #17365d;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 700;
+  text-align: center;
+}
+
+.count-box.selected-box {
+  border-color: #17365d;
+  background: #eef4fb;
+}
+
+.count-box.selected-box .count-label {
+  color: #52657d;
+  font-size: 13px;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.count-box .selected-name {
+  color: #17365d;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+/* ================= BREADCRUMB ================= */
+
+.breadcrumb {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 16px;
+  background: #fff;
+  border: 1px solid #d9e2ef;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(23, 54, 93, 0.05);
+}
+
+.breadcrumb button {
+  max-width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #52657d;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.breadcrumb button:hover {
+  background: #eef4fb;
+  color: #17365d;
+}
+
+.breadcrumb button.active {
+  background: #17365d;
+  color: #fff;
+}
+
+.breadcrumb > span {
+  color: #8a99aa;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ================= TOOLBAR ================= */
+
+.toolbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.back-button {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #17365d;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  background: #102b4a;
+}
+
+.search-box {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.search-box input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #cbd7e6;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #17365d;
+  font-size: 14px;
+}
+
+.search-box input:focus {
+  border-color: #17365d;
+  box-shadow: 0 0 0 3px rgba(23, 54, 93, 0.08);
+}
+
+/* ================= TABLE CARD ================= */
+
+.table-card {
+  width: 100%;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #d9e2ef;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(23, 54, 93, 0.07);
+  overflow: hidden;
+}
+
+.table-card-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid #e5ebf3;
+}
+
+.table-card-header h2 {
+  margin: 0;
+  color: #17365d;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.table-card-header p {
+  margin: 5px 0 0;
+  color: #6d7d90;
+  font-size: 13px;
+}
+
+/* =========================================================
+   IMPORTANT RESPONSIVE TABLE
+   Keep the real table on desktop, tablet and mobile.
+   The wrapper scrolls horizontally when the viewport is
+   narrower than the table's minimum width.
+========================================================= */
+
+.desktop-table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.desktop-table table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.desktop-table th,
+.desktop-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #e5ebf3;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.desktop-table th {
+  background: #eef4fb;
+  color: #17365d;
+  font-size: 13px;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.desktop-table td {
+  color: #334e68;
+  font-size: 14px;
+}
+
+.desktop-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.desktop-table .sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.desktop-table .sortable:hover {
+  background: #e2ebf6;
+}
+
+.desktop-table .clickable-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.desktop-table .clickable-row:hover {
+  background: #f6f9fd;
+}
+
+.desktop-table .clickable-name {
+  color: #17365d;
+  font-weight: 600;
+}
+
+.desktop-table .no-data {
+  padding: 28px 14px;
+  color: #6d7d90;
+  text-align: center;
+}
+
+/* Do not show the old mobile cards. */
+.mobile-list {
+  display: none !important;
+}
+
+/* ================= LOADING / ERROR ================= */
+
+.loading-box,
+.error-box {
+  width: 100%;
+  max-width: 700px;
+  margin: 80px auto;
+  padding: 28px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #d9e2ef;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(23, 54, 93, 0.07);
+}
+
+.loading-box {
+  color: #17365d;
+  font-weight: 600;
+}
+
+.error-box h3 {
+  margin: 0 0 10px;
+  color: #b42318;
+  font-size: 20px;
+}
+
+.error-box p {
+  margin: 0 0 18px;
+  color: #52657d;
+  overflow-wrap: anywhere;
+}
+
+.error-box button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #17365d;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* ================= TABLET ================= */
+
+@media (max-width: 1000px) {
+  .admin-page {
+    padding: 18px;
+  }
+
+  .count-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .desktop-table table {
+    min-width: 650px;
+  }
+}
+
+/* ================= MOBILE / SMALL TABLET ================= */
+
+@media (max-width: 700px) {
+  .admin-page {
+    padding: 12px;
+  }
+
+  .admin-header {
+    padding: 18px;
+    margin-bottom: 14px;
+    border-radius: 10px;
+  }
+
+  .admin-header h1 {
+    font-size: 23px;
+  }
+
+  .admin-header p {
+    font-size: 13px;
+  }
+
+  .count-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .count-box {
+    min-height: 88px;
+    padding: 13px 10px;
+  }
+
+  .count-box span {
+    font-size: 13px;
+  }
+
+  .count-box strong {
+    font-size: 25px;
+  }
+
+  .count-box.selected-box .count-label {
+    font-size: 12px;
+  }
+
+  .count-box .selected-name {
+    font-size: 18px;
+    line-height: 1.25;
+  }
+
+  .breadcrumb {
+    padding: 7px 8px;
+    margin-bottom: 12px;
+    gap: 3px;
+  }
+
+  .breadcrumb button {
+    padding: 6px 7px;
+    font-size: 12px;
+  }
+
+  .breadcrumb > span {
+    font-size: 15px;
+  }
+
+  .toolbar {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .back-button {
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .search-box input {
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  .table-card {
+    border-radius: 10px;
+  }
+
+  .table-card-header {
+    padding: 14px;
+  }
+
+  .table-card-header h2 {
+    font-size: 17px;
+  }
+
+  .table-card-header p {
+    font-size: 12px;
+  }
+
+  /* Horizontal scrolling on phones */
+  .desktop-table {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+  }
+
+  .desktop-table table {
+    min-width: 620px;
+    width: max-content;
+  }
+
+  .desktop-table th,
+  .desktop-table td {
+    padding: 11px 12px;
+    font-size: 12px;
+  }
+
+  .desktop-table th:first-child,
+  .desktop-table td:first-child {
+    width: 70px;
+    min-width: 70px;
+  }
+
+  .desktop-table th:nth-child(2),
+  .desktop-table td:nth-child(2) {
+    min-width: 110px;
+  }
+
+  .desktop-table th:nth-child(3),
+  .desktop-table td:nth-child(3) {
+    min-width: 260px;
+  }
+
+  .desktop-table th:nth-child(4),
+  .desktop-table td:nth-child(4) {
+    min-width: 110px;
+  }
+}
+
+/* ================= VERY SMALL MOBILE ================= */
+
+@media (max-width: 420px) {
+  .admin-page {
+    padding: 8px;
+  }
+
+  .admin-header {
+    padding: 15px;
+  }
+
+  .admin-header h1 {
+    font-size: 20px;
+  }
+
+  .count-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .count-box {
+    min-height: 76px;
+  }
+
+  .toolbar {
+    flex-direction: column;
+  }
+
+  .back-button {
+    width: 100%;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .desktop-table table {
+    min-width: 600px;
+  }
+}

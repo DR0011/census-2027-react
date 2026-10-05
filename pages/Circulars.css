@@ -1,0 +1,590 @@
+.circulars-page {
+  width: 100%;
+  padding: 10px;
+  background: #ffffff;
+  color: #222;
+  overflow-x: hidden;
+}
+
+.circulars-page .container {
+  width: 100%;
+  max-width: 1400px;
+  margin: auto;
+}
+
+/* TOP FILTER BAR */
+.circulars-page .filter-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.circulars-page .search-box {
+  flex: 1;
+  min-width: 220px;
+  height: 42px;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  outline: none;
+  font-size: 14px;
+}
+
+.circulars-page .search-box:focus {
+  border-color: #17365d;
+  box-shadow: 0 0 0 1px #17365d;
+}
+
+.circulars-page .language-select {
+  width: 170px;
+  height: 42px;
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.circulars-page .clear-all {
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: white;
+  color: #17365d;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.circulars-page .clear-all:hover {
+  background: #eef4fb;
+}
+
+/* MOBILE SORT */
+.circulars-page .mobile-sort-bar {
+  display: none;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.circulars-page .mobile-sort-bar select {
+  flex: 1;
+  height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 14px;
+  background: #fff;
+}
+
+.circulars-page .mobile-sort-bar button {
+  height: 42px;
+  min-width: 48px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: #fff;
+  color: #17365d;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* ACTIVE FILTERS */
+.circulars-page .active-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.circulars-page .filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  background: #e8f0fa;
+  color: #17365d;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.circulars-page .filter-tag button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #17365d;
+  font-weight: bold;
+}
+
+/* TABLE */
+.circulars-page .table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #d8dee6;
+  border-radius: 5px;
+}
+
+.circulars-page table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.circulars-page thead th {
+  position: relative;
+  background: #17365d;
+  color: white;
+  padding: 0;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.circulars-page th:first-child {
+  width: 55px;
+}
+
+.circulars-page th:nth-child(2) {
+  width: 150px;
+}
+
+.circulars-page th:nth-child(3) {
+  width: 190px;
+}
+
+.circulars-page th:nth-child(4) {
+  width: 100px;
+}
+
+.circulars-page th:nth-child(5) {
+  min-width: 450px;
+}
+
+.circulars-page .header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  gap: 5px;
+}
+
+.circulars-page .header-title {
+  cursor: pointer;
+}
+
+.circulars-page .header-title:hover {
+  text-decoration: underline;
+}
+
+.circulars-page .sort-icon {
+  margin-left: 4px;
+  opacity: 0.8;
+}
+
+.circulars-page tbody td {
+  padding: 7px 8px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+  line-height: 1.45;
+}
+
+.circulars-page tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.circulars-page tbody tr:hover {
+  background: #eef4fb;
+}
+
+.circulars-page .description {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.circulars-page .description-language-block {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.circulars-page .description-language-block:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.circulars-page .description-text {
+  margin-bottom: 7px;
+  line-height: 1.5;
+}
+
+.circulars-page .description-pdf-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.circulars-page .pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: white;
+  color: #17365d;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  min-height: 32px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.circulars-page .pdf-btn:hover {
+  background: #eef4fb;
+  border-color: #17365d;
+  color: #0b5ed7;
+}
+
+.circulars-page .pdf-not-available {
+  display: inline-block;
+  color: #777;
+  font-size: 11px;
+}
+
+.circulars-page .status {
+  padding: 15px;
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+}
+
+.circulars-page .error {
+  color: #b00020;
+}
+
+.circulars-page .no-data {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+}
+
+.circulars-page .count {
+  margin-top: 7px;
+  color: #666;
+  font-size: 11px;
+}
+
+/* FILTER POPUP */
+.circulars-page .filter-popup {
+  position: fixed;
+  z-index: 9999;
+  width: 280px;
+  max-height: 430px;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  display: none;
+}
+
+.circulars-page .filter-popup.active {
+  display: block;
+}
+
+.circulars-page .popup-header {
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  color: #17365d;
+}
+
+.circulars-page .popup-search {
+  width: calc(100% - 20px);
+  margin: 10px;
+  height: 32px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 6px 9px;
+  outline: none;
+  font-size: 12px;
+}
+
+.circulars-page .popup-search:focus {
+  border-color: #17365d;
+}
+
+.circulars-page .popup-actions {
+  display: flex;
+  gap: 5px;
+  padding: 0 10px 8px;
+}
+
+.circulars-page .popup-action {
+  flex: 1;
+  height: 30px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: white;
+  color: #17365d;
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.circulars-page .popup-action:hover {
+  background: #eef4fb;
+}
+
+.circulars-page .selected-count {
+  padding: 5px 10px;
+  font-size: 10px;
+  color: #666;
+}
+
+.circulars-page .filter-options {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 0 10px 10px;
+}
+
+.circulars-page .filter-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 4px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.circulars-page .filter-option:hover {
+  background: #f1f5f9;
+}
+
+.circulars-page .filter-option input {
+  cursor: pointer;
+}
+
+.circulars-page .option-text {
+  word-break: break-word;
+}
+
+.circulars-page .no-options {
+  text-align: center;
+  padding: 15px;
+  color: #777;
+  font-size: 12px;
+}
+
+.circulars-page .popup-footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 8px 10px;
+  display: flex;
+  gap: 6px;
+}
+
+.circulars-page .apply-btn {
+  flex: 1;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  background: #17365d;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.circulars-page .apply-btn:hover {
+  background: #0f2948;
+}
+
+/* TABLET */
+@media (max-width: 1024px) and (min-width: 721px) {
+  .circulars-page table {
+    min-width: 780px;
+    font-size: 12px;
+  }
+
+  .circulars-page th:nth-child(5) {
+    min-width: 360px;
+  }
+
+  .circulars-page .description-language-block {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+  }
+
+  .circulars-page .description-text {
+    font-size: 11.5px;
+  }
+
+  .circulars-page .description-pdf-buttons .pdf-btn {
+    padding: 6px 9px;
+    min-height: 32px;
+    font-size: 10.5px;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 720px) {
+  .circulars-page {
+    padding: 8px;
+  }
+
+  .circulars-page .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .circulars-page .search-box,
+  .circulars-page .language-select,
+  .circulars-page .clear-all {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .circulars-page .mobile-sort-bar {
+    display: flex;
+  }
+
+  .circulars-page .filter-popup {
+    position: fixed;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%);
+    width: 92vw;
+    max-width: 380px;
+    max-height: 80vh;
+  }
+
+  .circulars-page .table-wrapper {
+    overflow-x: visible;
+    border: none;
+  }
+
+  .circulars-page table {
+    min-width: 0;
+    width: 100%;
+    display: block;
+  }
+
+  .circulars-page thead {
+    display: none;
+  }
+
+  .circulars-page tbody,
+  .circulars-page tr,
+  .circulars-page td {
+    display: block;
+    width: 100%;
+  }
+
+  .circulars-page tbody tr {
+    margin-bottom: 12px;
+    border: 1px solid #d8dee6;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #fff;
+  }
+
+  .circulars-page tbody tr:nth-child(even) {
+    background: #fff;
+  }
+
+  .circulars-page tbody tr:hover {
+    background: #fff;
+  }
+
+  .circulars-page tbody td {
+    border-bottom: 1px solid #f0f2f5;
+    padding: 9px 0;
+  }
+
+  .circulars-page tbody td:last-child {
+    border-bottom: none;
+  }
+
+  .circulars-page tbody td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: #17365d;
+    margin-bottom: 4px;
+  }
+
+  .circulars-page tbody td:first-child::before {
+    content: none;
+  }
+
+  .circulars-page tbody td:first-child {
+    font-weight: 700;
+    color: #17365d;
+    padding-bottom: 4px;
+  }
+
+  .circulars-page .description-language-block {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 9px;
+    margin-bottom: 9px;
+  }
+
+  .circulars-page .description-language-block:last-child {
+    margin-bottom: 0;
+  }
+
+  .circulars-page .description-text {
+    font-size: 12px;
+    line-height: 1.55;
+    margin-bottom: 8px;
+  }
+
+  .circulars-page .description-pdf-buttons {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .circulars-page .description-pdf-buttons .pdf-btn {
+    flex: 1;
+    text-align: center;
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .circulars-page {
+    padding: 6px;
+  }
+
+  .circulars-page tbody tr {
+    padding: 9px 10px;
+  }
+
+  .circulars-page .description-language-block {
+    padding: 8px;
+  }
+
+  .circulars-page .description-pdf-buttons {
+    gap: 5px;
+  }
+
+  .circulars-page .description-pdf-buttons .pdf-btn {
+    min-height: 34px;
+    font-size: 10.5px;
+    padding: 7px 6px;
+  }
+}
