@@ -1,0 +1,486 @@
+* {
+  box-sizing: border-box;
+}
+
+.admin-page {
+  min-height: 100vh;
+  padding: 24px;
+  background: #f5f8fc;
+  color: #17365d;
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.admin-header {
+  background: #17365d;
+  color: white;
+  padding: 22px 26px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.admin-header p {
+  margin: 6px 0 0;
+  opacity: 0.9;
+}
+
+/* =========================================================
+   COUNT GRID
+========================================================= */
+
+.count-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.count-box {
+  background: white;
+  border: 1px solid #dbe5f0;
+  border-radius: 12px;
+  padding: 18px;
+  min-height: 105px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow:
+    0 3px 12px rgba(
+      23,
+      54,
+      93,
+      0.07
+    );
+}
+
+.count-box span {
+  font-size: 14px;
+  color: #52677d;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.count-box strong {
+  font-size: 30px;
+  color: #17365d;
+}
+
+/* =========================================================
+   BREADCRUMB
+========================================================= */
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 16px;
+  padding: 12px 15px;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #dbe5f0;
+}
+
+.breadcrumb button {
+  border: none;
+  background: transparent;
+  color: #42617f;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 5px;
+}
+
+.breadcrumb button:hover {
+  color: #17365d;
+  text-decoration: underline;
+}
+
+.breadcrumb button.active {
+  color: #17365d;
+  font-weight: 700;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.back-button {
+  border: none;
+  background: #17365d;
+  color: white;
+  padding: 11px 17px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.back-button:hover {
+  opacity: 0.9;
+}
+
+.search-box {
+  flex: 1;
+}
+
+.search-box input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #cbd8e6;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+}
+
+.search-box input:focus {
+  border-color: #17365d;
+  box-shadow:
+    0 0 0 3px rgba(
+      23,
+      54,
+      93,
+      0.1
+    );
+}
+
+/* =========================================================
+   TABLE CARD
+========================================================= */
+
+.table-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #dbe5f0;
+  overflow: hidden;
+  box-shadow:
+    0 3px 12px rgba(
+      23,
+      54,
+      93,
+      0.06
+    );
+}
+
+.table-card-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid #e4ebf3;
+}
+
+.table-card-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #17365d;
+}
+
+.table-card-header p {
+  margin: 5px 0 0;
+  color: #6a7d91;
+  font-size: 13px;
+}
+
+/* =========================================================
+   DESKTOP TABLE
+========================================================= */
+
+.desktop-table {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.desktop-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.desktop-table th,
+.desktop-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e7edf4;
+  white-space: nowrap;
+}
+
+.desktop-table th {
+  background: #eef4fb;
+  color: #17365d;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.desktop-table td {
+  color: #334e68;
+  font-size: 14px;
+}
+
+.desktop-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================================
+   CLICKABLE ROW
+========================================================= */
+
+.clickable-row {
+  cursor: pointer;
+  transition:
+    background 0.15s ease;
+}
+
+.clickable-row:hover {
+  background: #eef4fb;
+}
+
+.clickable-row:hover td {
+  color: #17365d;
+}
+
+.clickable-name {
+  color: #17365d;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clickable-name:hover {
+  text-decoration: underline;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  background: #e3edf8;
+}
+
+/* =========================================================
+   NO DATA
+========================================================= */
+
+.no-data {
+  text-align: center !important;
+  padding: 35px !important;
+  color: #718096 !important;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+.mobile-list {
+  display: none;
+}
+
+.mobile-card {
+  background: white;
+  border-bottom: 1px solid #e4ebf3;
+  padding: 16px;
+}
+
+.mobile-card:last-child {
+  border-bottom: none;
+}
+
+.clickable-mobile-card {
+  cursor: pointer;
+}
+
+.clickable-mobile-card:hover {
+  background: #eef4fb;
+}
+
+.mobile-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 7px 0;
+}
+
+.mobile-row span {
+  color: #718096;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mobile-row strong {
+  color: #17365d;
+  text-align: right;
+  font-size: 14px;
+}
+
+.mobile-no-data {
+  padding: 35px;
+  text-align: center;
+  color: #718096;
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.loading-box {
+  min-height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #17365d;
+  font-weight: 600;
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.error-box {
+  background: white;
+  border: 1px solid #e0e6ed;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 700px;
+  margin: 50px auto;
+  text-align: center;
+}
+
+.error-box h3 {
+  margin-top: 0;
+  color: #17365d;
+}
+
+.error-box p {
+  color: #c53030;
+  word-break: break-word;
+}
+
+.error-box button {
+  border: none;
+  background: #17365d;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+  .count-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .admin-page {
+    padding: 12px;
+  }
+
+  .admin-header {
+    padding: 18px;
+  }
+
+  .admin-header h1 {
+    font-size: 23px;
+  }
+
+  .count-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .count-box {
+    min-height: 90px;
+    padding: 14px;
+  }
+
+  .count-box span {
+    font-size: 12px;
+  }
+
+  .count-box strong {
+    font-size: 24px;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .back-button {
+    width: 100%;
+  }
+
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-list {
+    display: block;
+  }
+
+  .breadcrumb {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 420px) {
+  .count-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Count boxes */
+.count-box {
+  text-align: center;
+}
+
+/* Box title / selected text */
+.count-box span {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+/* Count */
+.count-box strong {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+/* Click કર્યા પછી selected name */
+.count-box.selected-box span {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  width: 100%;
+}
+
+
