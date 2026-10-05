@@ -1433,68 +1433,55 @@ export default function AdminUnits() {
         {/* ================= STATE / UT ================= */}
 
         <div className={`count-box ${selectedState ? "selected-box" : ""}`}>
-  <span>
-    {selectedState ? selectedState.name : "State / UT"}
-  </span>
-
-  {!selectedState && (
-    <strong>{stateBoxCount}</strong>
-  )}
-</div>
+          <span className="count-label">State / UT</span>
+          {selectedState ? (
+            <strong className="selected-name">{selectedState.name}</strong>
+          ) : (
+            <strong>{stateBoxCount}</strong>
+          )}
+        </div>
 
         {/* ================= DISTRICT ================= */}
 
-       <div className={`count-box ${selectedDistrict ? "selected-box" : ""}`}>
-  <span>
-    {selectedDistrict ? selectedDistrict.name : "District"}
-  </span>
-
-  {!selectedDistrict && (
-    <strong>{districtBoxCount}</strong>
-  )}
-</div>
+        <div className={`count-box ${selectedDistrict ? "selected-box" : ""}`}>
+          <span className="count-label">District</span>
+          {selectedDistrict ? (
+            <strong className="selected-name">{selectedDistrict.name}</strong>
+          ) : (
+            <strong>{districtBoxCount}</strong>
+          )}
+        </div>
 
         {/* ================= SUB DISTRICT ================= */}
 
-       <div className={`count-box ${selectedSubDistrict ? "selected-box" : ""}`}>
-  <span>
-    {selectedSubDistrict
-      ? selectedSubDistrict.name
-      : "Sub-District"}
-  </span>
-
-  {!selectedSubDistrict && (
-    <strong>{subDistrictBoxCount}</strong>
-  )}
-</div>
+        <div className={`count-box ${selectedSubDistrict ? "selected-box" : ""}`}>
+          <span className="count-label">Sub-District</span>
+          {selectedSubDistrict ? (
+            <strong className="selected-name">{selectedSubDistrict.name}</strong>
+          ) : (
+            <strong>{subDistrictBoxCount}</strong>
+          )}
+        </div>
 
         {/* ================= VILLAGE / TOWN ================= */}
 
-       <div className={`count-box ${selectedVillageTown ? "selected-box" : ""}`}>
-  <span>
-    {selectedVillageTown
-      ? selectedVillageTown.name
-      : "Village & Town"}
-  </span>
-
-  {!selectedVillageTown && (
-    <strong>{villageTownBoxCount}</strong>
-  )}
-</div>
+        <div className={`count-box ${selectedVillageTown ? "selected-box" : ""}`}>
+          <span className="count-label">Village & Town</span>
+          {selectedVillageTown ? (
+            <strong className="selected-name">{selectedVillageTown.name}</strong>
+          ) : (
+            <strong>{villageTownBoxCount}</strong>
+          )}
+        </div>
 
         {/* ================= WARD ================= */}
 
-        <div className="count-box">
-          <span>
-            {selectedWard
-              ? selectedWard.name
-              : "Ward"}
-          </span>
-
-          {!selectedWard && (
-            <strong>
-              {wardBoxCount}
-            </strong>
+        <div className={`count-box ${selectedWard ? "selected-box" : ""}`}>
+          <span className="count-label">Ward</span>
+          {selectedWard ? (
+            <strong className="selected-name">{selectedWard.name}</strong>
+          ) : (
+            <strong>{wardBoxCount}</strong>
           )}
         </div>
 
@@ -1796,92 +1783,10 @@ export default function AdminUnits() {
         </div>
 
         {/* =================================================
-            MOBILE CARDS
+            MOBILE / TABLET
+            Same table is used at every screen size.
+            CSS below makes this area horizontally scrollable.
         ================================================= */}
-
-        <div className="mobile-list">
-
-          {currentData.length ===
-          0 ? (
-            <div className="mobile-no-data">
-              No data found
-            </div>
-          ) : (
-            currentData.map(
-              (
-                item,
-                index
-              ) => (
-                <div
-                  key={`${item.code}-${item.name}-mobile-${index}`}
-                  className="mobile-card clickable-mobile-card"
-                  onClick={() =>
-                    handleItemClick(
-                      item
-                    )
-                  }
-                >
-
-                  <div className="mobile-row">
-
-                    <span>
-                      Sr. No.
-                    </span>
-
-                    <strong>
-                      {index + 1}
-                    </strong>
-
-                  </div>
-
-                  <div className="mobile-row">
-
-                    <span>
-                      Code
-                    </span>
-
-                    <strong>
-                      {item.code ||
-                        "-"}
-                    </strong>
-
-                  </div>
-
-                  <div className="mobile-row">
-
-                    <span>
-                      Name
-                    </span>
-
-                    <strong className="clickable-name">
-                      {item.name ||
-                        "-"}
-                    </strong>
-
-                  </div>
-
-                  {level ===
-                    "villageTown" && (
-                    <div className="mobile-row">
-
-                      <span>
-                        Type
-                      </span>
-
-                      <strong>
-                        {item.type ||
-                          "-"}
-                      </strong>
-
-                    </div>
-                  )}
-
-                </div>
-              )
-            )
-          )}
-
-        </div>
 
       </div>
 
