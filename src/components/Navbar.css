@@ -1,0 +1,297 @@
+
+/* =========================================
+   CENSUS 2027 NAVBAR
+========================================= */
+
+.navbar {
+  position: relative;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 24px;
+  background: #17365d;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  font-family: Arial, sans-serif;
+}
+
+.navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.brand-icon {
+  font-size: 23px;
+}
+
+/* =========================================
+   NAVIGATION LINKS
+========================================= */
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.navbar-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #ffffff;
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.navbar-link:hover,
+.navbar-link.active {
+  background: #2b4e78;
+  color: #ffffff;
+}
+
+.dropdown-toggle {
+  appearance: none;
+}
+
+/* =========================================
+   CORRESPONDENCE DROPDOWN
+========================================= */
+
+.navbar-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.arrow {
+  font-size: 12px;
+}
+
+.navbar-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1100;
+  width: 230px;
+  max-width: calc(100vw - 24px);
+  padding: 6px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.dropdown-link {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border-radius: 5px;
+  color: #17365d;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.dropdown-link:hover,
+.dropdown-link.active {
+  background: #eef4fb;
+  color: #17365d;
+}
+
+/* =========================================
+   USER MENU
+========================================= */
+
+.user-menu {
+  position: relative;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.user-menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.user-menu-toggle:hover {
+  background: #2b4e78;
+}
+
+.user-icon {
+  font-size: 16px;
+}
+
+.role-label {
+  opacity: 0.85;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1100;
+  width: 210px;
+  padding: 7px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.user-dropdown-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 11px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid #e4eaf1;
+  color: #17365d;
+}
+
+.user-dropdown-info strong {
+  overflow-wrap: anywhere;
+}
+
+.user-dropdown-info span {
+  color: #66758a;
+  font-size: 12px;
+}
+
+.user-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 11px 10px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #17365d;
+  text-align: left;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.user-dropdown button:hover {
+  background: #eef4fb;
+}
+
+.user-dropdown .logout-button {
+  color: #b42318;
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1050px) {
+  .navbar {
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+
+  .navbar-links {
+    order: 3;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .user-menu {
+    margin-left: auto;
+  }
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+  .navbar {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .navbar-brand {
+    font-size: 18px;
+  }
+
+  .navbar-links {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .navbar-links > .navbar-link,
+  .navbar-dropdown,
+  .navbar-dropdown > .navbar-link {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .navbar-links > .navbar-link,
+  .navbar-dropdown > .navbar-link {
+    justify-content: space-between;
+  }
+
+  .navbar-dropdown {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .navbar-dropdown-menu {
+    position: static;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin-top: 4px;
+    box-shadow: none;
+  }
+
+  .user-menu {
+    margin-left: auto;
+  }
+
+  .user-menu-toggle {
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 8px;
+  }
+
+  .role-label {
+    display: none;
+  }
+}

@@ -1,0 +1,337 @@
+.user-management {
+  padding: 25px;
+}
+
+.user-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 25px;
+}
+
+.user-page-header h1 {
+  margin: 0;
+
+  color: #17365d;
+
+  font-size: 28px;
+}
+
+.user-page-header p {
+  margin-top: 6px;
+
+  color: #666;
+}
+
+.add-user-btn {
+  background: #17365d;
+
+  color: white;
+
+  border: none;
+
+  border-radius: 7px;
+
+  padding: 12px 18px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+}
+
+.alert {
+  padding: 12px 15px;
+
+  border-radius: 7px;
+
+  margin-bottom: 15px;
+}
+
+.alert.error {
+  background: #fdecec;
+
+  color: #c62828;
+}
+
+.alert.success {
+  background: #eaf7ee;
+
+  color: #2e7d32;
+}
+
+.user-table-container {
+  width: 100%;
+
+  overflow-x: auto;
+
+  background: white;
+
+  border-radius: 10px;
+
+  box-shadow:
+    0 3px 15px rgba(0, 0, 0, 0.08);
+}
+
+.user-table {
+  width: 100%;
+
+  min-width: 900px;
+
+  border-collapse: collapse;
+}
+
+.user-table th {
+  background: #17365d;
+
+  color: white;
+
+  padding: 13px;
+
+  text-align: left;
+}
+
+.user-table td {
+  padding: 12px 13px;
+
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.user-table tbody tr:hover {
+  background: #f7faff;
+}
+
+.role-badge {
+  display: inline-block;
+
+  padding: 5px 9px;
+
+  border-radius: 20px;
+
+  font-size: 12px;
+
+  font-weight: 600;
+}
+
+.role-badge.admin {
+  background: #e8eef7;
+  color: #17365d;
+}
+
+.role-badge.nodal_officer {
+  background: #edf7ed;
+  color: #2e7d32;
+}
+
+.role-badge.incharge_officer {
+  background: #fff4df;
+  color: #9a6500;
+}
+
+.edit-btn,
+.delete-btn {
+  border: none;
+
+  padding: 7px 11px;
+
+  border-radius: 5px;
+
+  cursor: pointer;
+
+  margin-right: 6px;
+}
+
+.edit-btn {
+  background: #e7eef8;
+
+  color: #17365d;
+}
+
+.delete-btn {
+  background: #fdecec;
+
+  color: #c62828;
+}
+
+.delete-btn:disabled {
+  opacity: 0.4;
+
+  cursor: not-allowed;
+}
+
+.loading {
+  padding: 40px;
+
+  text-align: center;
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.45);
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 20px;
+
+  z-index: 9999;
+}
+
+.user-modal {
+  width: 100%;
+
+  max-width: 650px;
+
+  background: white;
+
+  border-radius: 12px;
+
+  padding: 25px;
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+
+  color: #17365d;
+}
+
+.close-btn {
+  border: none;
+
+  background: transparent;
+
+  font-size: 30px;
+
+  cursor: pointer;
+
+  color: #555;
+}
+
+.form-row {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 15px;
+}
+
+.form-group {
+  margin-bottom: 17px;
+}
+
+.form-group label {
+  display: block;
+
+  margin-bottom: 6px;
+
+  font-weight: 600;
+
+  color: #17365d;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 11px;
+
+  border: 1px solid #ccd6e0;
+
+  border-radius: 6px;
+
+  outline: none;
+
+  font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #17365d;
+}
+
+.modal-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  margin-top: 10px;
+}
+
+.cancel-btn,
+.save-btn {
+  border: none;
+
+  padding: 11px 18px;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+}
+
+.cancel-btn {
+  background: #eeeeee;
+
+  color: #333;
+}
+
+.save-btn {
+  background: #17365d;
+
+  color: white;
+}
+
+@media (max-width: 700px) {
+  .user-management {
+    padding: 15px;
+  }
+
+  .user-page-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .add-user-btn {
+    width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .user-modal {
+    padding: 20px;
+  }
+}

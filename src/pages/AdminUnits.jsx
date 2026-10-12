@@ -1,1505 +1,1351 @@
-import { useEffect, useMemo, useState } from "react";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 import "./AdminUnits.css";
 
-const API_URL =
-  "http://localhost:5000/api/administrative-units";
+const API_URL = "http://localhost:5000/api/administrative-units";
 
-/* =========================================================
-   HELPERS
-========================================================= */
+const ROW_H = 40;
+const VIEW_H = 600;
+const OVERSCAN = 10;
 
-const clean = (value) =>
-  String(value ?? "").trim();
+/* ================= HELPERS ================= */
 
-const normalize = (value) =>
-  clean(value).toLowerCase();
+const clean = (v) => String(v ?? "").trim();
+const normalize = (v) => clean(v).toLowerCase();
+
+const padCode = (v, length) => {
+  const value = clean(v);
+  return value ? value.padStart(length, "0") : "";
+};
+
+const numCmp = (a, b) =>
+  clean(a).localeCompare(clean(b), undefined, { numeric: true });
+
+const sortByKeys = (keys) => (a, b) => {
+  for (const key of keys) {
+    const result = numCmp(a[key], b[key]);
+    if (result) return result;
+  }
+  return 0;
+};
 
 const uniqueBy = (items, keyFn) => {
   const map = new Map();
 
-  for (const item of items) {
+  items.forEach((item) => {
     const key = keyFn(item);
-
-    if (!map.has(key)) {
-      map.set(key, item);
-    }
-  }
+    if (!map.has(key)) map.set(key, item);
+  });
 
   return [...map.values()];
 };
 
-/* =========================================================
-   STATE CODE
-========================================================= */
+/* ================= STATE ================= */
 
 const getStateCode = (row) => {
-  const stateName = normalize(row?.stname2027);
+  const name = normalize(row?.stname2027);
 
-  if (stateName === "gujarat") {
-    return "25";
-  }
+  if (name === "gujarat") return "25";
 
-  if (
-    stateName ===
-    "dadra and nagar haveli and daman and diu"
-  ) {
+  if (name === "dadra and nagar haveli and daman and diu") {
     return "26";
   }
 
   return clean(row?.stsh2027);
 };
 
-/* =========================================================
-   CODE HELPERS
-========================================================= */
+const getStateName = (row) => {
+  const code = getStateCode(row);
 
-const getDistrictCode = (row) =>
-  clean(row?.revdtsh2027);
+  if (code === "25") return "Gujarat";
 
-const getSubDistrictCode = (row) =>
-  clean(row?.revsdsh2027);
+  if (code === "26") {
+    return "Dadra and Nagar Haveli and Daman and Diu";
+  }
 
-const getVillageTownCode = (row) =>
-  clean(row?.revvtsh2027);
+  return clean(row?.stname2027);
+};
 
-const getWardName = (row) =>
-  clean(row?.["Name ward"]);
+/* ================= DISTRICT ================= */
 
-/* =========================================================
-   DNHDD CHECK
-========================================================= */
+const getDistrictCode = (row) => {
+  const raw =
+    row?.dtsh2027 ??
+    row?.DTSH2027 ??
+    row?.districtCode ??
+    row?.district_code ??
+    row?.dtcode2027 ??
+    row?.DTCode2027 ??
+    row?.["District Code"] ??
+    row?.revdtsh2027;
 
-const isDnhddDistrict = (row) => {
-  const districtCode =
-    getDistrictCode(row);
+  let code = clean(raw)
+    .replace(/^DT[-\s]?/i, "")
+    .replace(/^0+(?=\d)/, "");
 
-  const districtName =
-    normalize(row?.dtname2027);
+  if (!code) return "";
+
+  if (getStateCode(row) === "26") {
+    const map = { "35": "01", "36": "02", "37": "03" };
+    if (map[code]) code = map[code];
+  }
+
+  return code.padStart(2, "0");
+};
+
+const getDistrictName = (row) => clean(row?.dtname2027);
+
+const isDnhddDistrict = (code, name) => {
+  const raw = clean(code).replace(/^DT[-\s]?/i, "");
+  const n = normalize(name);
 
   return (
-    ["035", "036", "037", "35", "36", "37"].includes(
-      districtCode
-    ) ||
-    [
-      "dadra and nagar haveli",
-      "daman",
-      "diu",
-    ].includes(districtName)
+    ["35", "36", "37", "035", "036", "037"].includes(raw) ||
+    n.includes("dadra and nagar haveli") ||
+    n.includes("dadra & nagar haveli") ||
+    n === "daman" ||
+    n === "diu"
   );
 };
 
-/* =========================================================
-   SORT
-========================================================= */
+/* ================= SUB-DISTRICT ================= */
 
-const compareValues = (
-  a,
-  b,
-  field,
-  direction
-) => {
-  let aValue = "";
-  let bValue = "";
+const getSubDistrictCode = (row) =>
+  padCode(row?.revsdsh2027 ?? row?.subDistrictCode, 3);
 
-  if (field === "code") {
-    aValue = clean(a?.code);
-    bValue = clean(b?.code);
+const getSubDistrictName = (row) => clean(row?.sdname2027);
 
-    const aNumber = Number(aValue);
-    const bNumber = Number(bValue);
+/* ================= VILLAGE / TOWN ================= */
 
-    if (
-      !Number.isNaN(aNumber) &&
-      !Number.isNaN(bNumber)
-    ) {
-      return direction === "asc"
-        ? aNumber - bNumber
-        : bNumber - aNumber;
-    }
-  } else {
-    aValue = normalize(a?.name);
-    bValue = normalize(b?.name);
-  }
+const getVillageTownCode = (row) =>
+  padCode(row?.revvtsh2027 ?? row?.code, 4);
 
-  if (aValue < bValue) {
-    return direction === "asc"
-      ? -1
-      : 1;
-  }
+const getVillageTownName = (row) =>
+  clean(row?.vtname2027 ?? row?.name);
 
-  if (aValue > bValue) {
-    return direction === "asc"
-      ? 1
-      : -1;
-  }
+const getVillageTownType = (row) =>
+  clean(row?.vtru2027 ?? row?.type);
 
-  return 0;
-};
+/* ================= WARD ================= */
 
-/* =========================================================
-   COMPONENT
-========================================================= */
+const getWardName = (row) =>
+  clean(row?.["Name ward"] ?? row?.wardName ?? row?.ward_name);
+
+const getWardCode = (row) =>
+  clean(
+    row?.wardCode ??
+      row?.ward_code ??
+      row?.["Ward Code"] ??
+      row?.wardsh2027 ??
+      row?.wardcode2027
+  );
+
+/* ================= COMPONENT ================= */
 
 export default function AdminUnits() {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [loading, setLoading] =
-    useState(true);
+  const [level, setLevel] = useState("state");
+  const [tableMode, setTableMode] = useState("all");
 
-  const [error, setError] =
-    useState("");
+  const [selectedState, setSelectedState] = useState(null);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [selectedSubDistrict, setSelectedSubDistrict] = useState(null);
+  const [selectedVillageTown, setSelectedVillageTown] = useState(null);
+  const [selectedWard, setSelectedWard] = useState(null);
 
-  const [level, setLevel] =
-    useState("state");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [sortBy, setSortBy] = useState("code");
+  const [sortDirection, setSortDirection] = useState("asc");
 
-  /* =======================================================
-     SELECTED LEVELS
-  ======================================================= */
+  const [vtRows, setVtRows] = useState([]);
+  const [vtScopeTotal, setVtScopeTotal] = useState(0);
+  const [vtLoading, setVtLoading] = useState(false);
 
-  const [selectedState, setSelectedState] =
-    useState(null);
+  const vtCache = useRef(new Map());
+  const scrollRef = useRef(null);
+  const [scrollTop, setScrollTop] = useState(0);
 
-  const [selectedDistrict, setSelectedDistrict] =
-    useState(null);
-
-  const [
-    selectedSubDistrict,
-    setSelectedSubDistrict,
-  ] = useState(null);
-
-  const [
-    selectedVillageTown,
-    setSelectedVillageTown,
-  ] = useState(null);
-
-  const [
-    selectedWard,
-    setSelectedWard,
-  ] = useState(null);
-
-  /* =======================================================
-     SEARCH / SORT
-  ======================================================= */
-
-  const [search, setSearch] =
-    useState("");
-
-  const [sortField, setSortField] =
-    useState("code");
-
-  const [
-    sortDirection,
-    setSortDirection,
-  ] = useState("asc");
-
-  /* =======================================================
-     LOAD API
-  ======================================================= */
+  /* ================= FETCH MAIN DATA ================= */
 
   useEffect(() => {
-    const loadAdministrativeData =
-      async () => {
-        try {
-          setLoading(true);
-          setError("");
+    const controller = new AbortController();
 
-          const response =
-            await fetch(API_URL);
+    async function fetchData() {
+      try {
+        setLoading(true);
+        setError("");
 
-          if (!response.ok) {
-            throw new Error(
-              `HTTP ${response.status}`
-            );
-          }
+        const response = await fetch(API_URL, {
+          signal: controller.signal,
+        });
 
-          const result =
-            await response.json();
-
-          if (!result.success) {
-            throw new Error(
-              result.message ||
-                "Failed to load administrative data"
-            );
-          }
-
-          const rows = Array.isArray(
-            result.data
-          )
-            ? result.data
-            : [];
-
-          setData(rows);
-        } catch (err) {
-          console.error(
-            "ADMINISTRATIVE DATA ERROR:",
-            err
-          );
-
-          setError(
-            err?.message ||
-              "Failed to load administrative data"
-          );
-        } finally {
-          setLoading(false);
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status}`);
         }
-      };
 
-    loadAdministrativeData();
+        const result = await response.json();
+
+        const rows = Array.isArray(result)
+          ? result
+          : Array.isArray(result.data)
+          ? result.data
+          : Array.isArray(result.rows)
+          ? result.rows
+          : [];
+
+        if (!rows.length) {
+          throw new Error("No data array found in API response.");
+        }
+
+        setData(rows);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setError(
+            err.message || "Unable to load administrative units."
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }
+
+    fetchData();
+
+    return () => controller.abort();
   }, []);
 
-  /* =======================================================
-     STATES
-  ======================================================= */
+  /* ================= DEBOUNCE SEARCH ================= */
 
-  const stateData = useMemo(() => {
-    const rows = data
-      .filter((row) => {
-        const stateCode =
-          getStateCode(row);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 250);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-        return (
-          stateCode === "25" ||
-          stateCode === "26"
+  /* ================= VILLAGE / TOWN API ================= */
+
+  const vtQuery = (countOnly = false) => {
+    const params = new URLSearchParams();
+
+    if (selectedState) {
+      params.set("stateCode", selectedState.code);
+    }
+
+    if (selectedDistrict) {
+      params.set("districtCode", selectedDistrict.code);
+    }
+
+    if (selectedSubDistrict) {
+      params.set("subdistrictCode", selectedSubDistrict.code);
+    }
+
+    if (countOnly) params.set("countOnly", "1");
+
+    return params.toString();
+  };
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function fetchCount() {
+      try {
+        const response = await fetch(
+          `${API_URL}/villages-towns?${vtQuery(true)}`,
+          { signal: controller.signal }
         );
-      })
-      .map((row) => {
-        const stateCode =
-          getStateCode(row);
 
-        return {
-          code: stateCode,
+        if (!response.ok) return;
 
-          name:
-            stateCode === "25"
-              ? "Gujarat"
-              : "Dadra and Nagar Haveli and Daman and Diu",
-        };
-      });
-
-    return uniqueBy(
-      rows,
-      (item) => item.code
-    );
-  }, [data]);
-
-  /* =======================================================
-     DISTRICTS
-  ======================================================= */
-
-  const districtData = useMemo(() => {
-    if (!selectedState) {
-      return [];
+        const result = await response.json();
+        setVtScopeTotal(Number(result.total || 0));
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Village/Town count error:", err);
+        }
+      }
     }
 
-    const stateCode =
-      clean(selectedState.code);
+    fetchCount();
 
-    const rows = data.filter((row) => {
-      const rowStateCode =
-        getStateCode(row);
+    return () => controller.abort();
 
-      if (
-        rowStateCode !== stateCode
-      ) {
-        return false;
-      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedState, selectedDistrict, selectedSubDistrict]);
 
-      const districtCode =
-        getDistrictCode(row);
+  useEffect(() => {
+    if (level !== "villageTown") return;
 
-      const districtName =
-        clean(row?.dtname2027);
+    const query = vtQuery();
+    const cacheKey = query;
 
-      if (
-        districtCode === "" &&
-        districtName === ""
-      ) {
-        return false;
-      }
-
-      /* Gujarat */
-      if (
-        stateCode === "25" &&
-        isDnhddDistrict(row)
-      ) {
-        return false;
-      }
-
-      /* DNHDD */
-      if (
-        stateCode === "26" &&
-        !isDnhddDistrict(row)
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-
-    const mapped = rows.map((row) => ({
-      code: getDistrictCode(row),
-      name: clean(row?.dtname2027),
-    }));
-
-    return uniqueBy(
-      mapped,
-      (item) =>
-        `${item.code}-${normalize(
-          item.name
-        )}`
-    );
-  }, [data, selectedState]);
-
-  /* =======================================================
-     SUB DISTRICTS
-  ======================================================= */
-
-  const subDistrictData = useMemo(() => {
-    if (
-      !selectedState ||
-      !selectedDistrict
-    ) {
-      return [];
+    if (vtCache.current.has(cacheKey)) {
+      setVtRows(vtCache.current.get(cacheKey));
+      setVtLoading(false);
+      return;
     }
 
-    const stateCode =
-      clean(selectedState.code);
+    const controller = new AbortController();
 
-    const districtCode =
-      clean(selectedDistrict.code);
+    async function fetchVillageTowns() {
+      try {
+        setVtLoading(true);
+        setError("");
 
-    const rows = data.filter((row) => {
-      if (
-        getStateCode(row) !==
-        stateCode
-      ) {
-        return false;
+        const response = await fetch(
+          `${API_URL}/villages-towns?${query}`,
+          { signal: controller.signal }
+        );
+
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        const rows = (result.data || []).map((row) => ({
+          stateCode: clean(row.stsh2027),
+          stateName: clean(row.stname2027),
+          districtCode: clean(row.revdtsh2027),
+          districtName: clean(row.dtname2027),
+          subDistrictCode: clean(row.revsdsh2027),
+          subDistrictName: clean(row.sdname2027),
+          code: clean(row.revvtsh2027),
+          name: clean(row.vtname2027),
+          type: clean(row.vtru2027),
+          wardCode: getWardCode(row),
+          wardName: getWardName(row),
+        }));
+
+        vtCache.current.set(cacheKey, rows);
+        setVtRows(rows);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setError(err.message);
+        }
+      } finally {
+        if (!controller.signal.aborted) setVtLoading(false);
       }
-
-      if (
-        getDistrictCode(row) !==
-        districtCode
-      ) {
-        return false;
-      }
-
-      return (
-        getSubDistrictCode(row) !==
-          "" ||
-        clean(row?.sdname2027) !==
-          ""
-      );
-    });
-
-    const mapped = rows.map((row) => ({
-      code: getSubDistrictCode(row),
-      name: clean(row?.sdname2027),
-    }));
-
-    return uniqueBy(
-      mapped,
-      (item) =>
-        `${item.code}-${normalize(
-          item.name
-        )}`
-    );
-  }, [
-    data,
-    selectedState,
-    selectedDistrict,
-  ]);
-
-  /* =======================================================
-     VILLAGE / TOWN
-  ======================================================= */
-
-  const villageTownData = useMemo(() => {
-    if (
-      !selectedState ||
-      !selectedDistrict ||
-      !selectedSubDistrict
-    ) {
-      return [];
     }
 
-    const stateCode =
-      clean(selectedState.code);
+    fetchVillageTowns();
 
-    const districtCode =
-      clean(selectedDistrict.code);
+    return () => controller.abort();
 
-    const subDistrictCode =
-      clean(selectedSubDistrict.code);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [level, selectedState, selectedDistrict, selectedSubDistrict]);
 
-    const rows = data.filter((row) => {
-      if (
-        getStateCode(row) !==
-        stateCode
-      ) {
-        return false;
-      }
+  /* ================= VALID DATA ================= */
 
-      if (
-        getDistrictCode(row) !==
-        districtCode
-      ) {
-        return false;
-      }
+  const validRows = useMemo(
+    () =>
+      data.filter((row) => {
+        const stateCode = getStateCode(row);
 
-      if (
-        getSubDistrictCode(row) !==
-        subDistrictCode
-      ) {
-        return false;
-      }
-
-      return (
-        getVillageTownCode(row) !==
-          "" ||
-        clean(row?.vtname2027) !==
-          ""
-      );
-    });
-
-    const mapped = rows.map((row) => ({
-      code: getVillageTownCode(row),
-
-      name: clean(
-        row?.vtname2027
-      ),
-
-      type: clean(
-        row?.vtru2027
-      ),
-    }));
-
-    return uniqueBy(
-      mapped,
-      (item) =>
-        [
-          item.code,
-          normalize(item.name),
-          normalize(item.type),
-        ].join("-")
-    );
-  }, [
-    data,
-    selectedState,
-    selectedDistrict,
-    selectedSubDistrict,
-  ]);
-
-  /* =======================================================
-     WARDS
-  ======================================================= */
-
-  const wardData = useMemo(() => {
-    if (
-      !selectedState ||
-      !selectedDistrict ||
-      !selectedSubDistrict ||
-      !selectedVillageTown
-    ) {
-      return [];
-    }
-
-    const stateCode =
-      clean(selectedState.code);
-
-    const districtCode =
-      clean(selectedDistrict.code);
-
-    const subDistrictCode =
-      clean(selectedSubDistrict.code);
-
-    const villageTownCode =
-      clean(selectedVillageTown.code);
-
-    const villageTownName =
-      normalize(
-        selectedVillageTown.name
-      );
-
-    const rows = data.filter((row) => {
-      if (
-        getStateCode(row) !==
-        stateCode
-      ) {
-        return false;
-      }
-
-      if (
-        getDistrictCode(row) !==
-        districtCode
-      ) {
-        return false;
-      }
-
-      if (
-        getSubDistrictCode(row) !==
-        subDistrictCode
-      ) {
-        return false;
-      }
-
-      if (
-        getVillageTownCode(row) !==
-        villageTownCode
-      ) {
-        return false;
-      }
-
-      if (
-        normalize(
-          row?.vtname2027
-        ) !== villageTownName
-      ) {
-        return false;
-      }
-
-      return (
-        getWardName(row) !== ""
-      );
-    });
-
-    const mapped = rows.map(
-      (row) => ({
-        code: getWardName(row),
-        name: getWardName(row),
-      })
-    );
-
-    return uniqueBy(
-      mapped,
-      (item) =>
-        normalize(item.name)
-    );
-  }, [
-    data,
-    selectedState,
-    selectedDistrict,
-    selectedSubDistrict,
-    selectedVillageTown,
-  ]);
-
-  /* =======================================================
-     TOTAL DISTRICTS
-  ======================================================= */
-
-  const totalDistricts =
-    useMemo(() => {
-      const rows = data.filter(
-        (row) => {
-          const stateCode =
-            getStateCode(row);
-
-          if (
-            stateCode !== "25" &&
-            stateCode !== "26"
-          ) {
-            return false;
-          }
-
-          if (
-            stateCode === "25" &&
-            isDnhddDistrict(row)
-          ) {
-            return false;
-          }
-
-          if (
-            stateCode === "26" &&
-            !isDnhddDistrict(row)
-          ) {
-            return false;
-          }
-
-          return (
-            getDistrictCode(row) !==
-              "" ||
-            clean(
-              row?.dtname2027
-            ) !== ""
-          );
-        }
-      );
-
-      return uniqueBy(
-        rows,
-        (row) =>
-          [
-            getStateCode(row),
-            getDistrictCode(row),
-            normalize(
-              row?.dtname2027
-            ),
-          ].join("-")
-      ).length;
-    }, [data]);
-
-  /* =======================================================
-     TOTAL SUB DISTRICTS
-  ======================================================= */
-
-  const totalSubDistricts =
-    useMemo(() => {
-      const rows = data.filter(
-        (row) => {
-          const stateCode =
-            getStateCode(row);
-
-          if (
-            stateCode !== "25" &&
-            stateCode !== "26"
-          ) {
-            return false;
-          }
-
-          if (
-            stateCode === "25" &&
-            isDnhddDistrict(row)
-          ) {
-            return false;
-          }
-
-          if (
-            stateCode === "26" &&
-            !isDnhddDistrict(row)
-          ) {
-            return false;
-          }
-
-          return (
-            getSubDistrictCode(
-              row
-            ) !== "" ||
-            clean(
-              row?.sdname2027
-            ) !== ""
-          );
-        }
-      );
-
-      return uniqueBy(
-        rows,
-        (row) =>
-          [
-            getStateCode(row),
-            getDistrictCode(row),
-            getSubDistrictCode(
-              row
-            ),
-            normalize(
-              row?.sdname2027
-            ),
-          ].join("-")
-      ).length;
-    }, [data]);
-
-  /* =======================================================
-     TOTAL VILLAGE / TOWN
-  ======================================================= */
-
-  const totalVillageTowns =
-    useMemo(() => {
-      const rows = data.filter(
-        (row) => {
-          const stateCode =
-            getStateCode(row);
-
-          if (
-            stateCode !== "25" &&
-            stateCode !== "26"
-          ) {
-            return false;
-          }
-
-          if (
-            stateCode === "25" &&
-            isDnhddDistrict(row)
-          ) {
-            return false;
-          }
-
-          if (
-            stateCode === "26" &&
-            !isDnhddDistrict(row)
-          ) {
-            return false;
-          }
-
-          return (
-            getVillageTownCode(
-              row
-            ) !== "" ||
-            clean(
-              row?.vtname2027
-            ) !== ""
-          );
-        }
-      );
-
-      return uniqueBy(
-        rows,
-        (row) =>
-          [
-            getStateCode(row),
-            getDistrictCode(row),
-            getSubDistrictCode(
-              row
-            ),
-            getVillageTownCode(
-              row
-            ),
-            normalize(
-              row?.vtname2027
-            ),
-          ].join("-")
-      ).length;
-    }, [data]);
-
-  /* =======================================================
-     TOTAL WARDS
-  ======================================================= */
-
-  const totalWards = useMemo(() => {
-    const rows = data.filter(
-      (row) => {
-        const stateCode =
-          getStateCode(row);
-
-        if (
-          stateCode !== "25" &&
-          stateCode !== "26"
-        ) {
-          return false;
-        }
+        if (stateCode !== "25" && stateCode !== "26") return false;
 
         if (
           stateCode === "25" &&
-          isDnhddDistrict(row)
+          isDnhddDistrict(getDistrictCode(row), getDistrictName(row))
         ) {
           return false;
         }
 
-        if (
-          stateCode === "26" &&
-          !isDnhddDistrict(row)
-        ) {
-          return false;
-        }
+        return true;
+      }),
+    [data]
+  );
 
-        return (
-          getWardName(row) !== ""
-        );
-      }
-    );
+  /* ================= STATE DATA ================= */
 
-    return uniqueBy(
-      rows,
-      (row) =>
-        [
-          getStateCode(row),
-          getDistrictCode(row),
-          getSubDistrictCode(
-            row
-          ),
-          getVillageTownCode(
-            row
-          ),
-          normalize(
-            row?.vtname2027
-          ),
-          normalize(
+  const allStateData = useMemo(
+    () =>
+      uniqueBy(validRows, (row) => getStateCode(row))
+        .map((row) => ({
+          code: getStateCode(row),
+          name: getStateName(row),
+        }))
+        .sort((a, b) => numCmp(a.code, b.code)),
+    [validRows]
+  );
+
+  /* ================= DISTRICT DATA ================= */
+
+  const allDistrictData = useMemo(
+    () =>
+      uniqueBy(
+        validRows.filter(
+          (row) => getDistrictCode(row) && getDistrictName(row)
+        ),
+        (row) => `${getStateCode(row)}-${getDistrictCode(row)}`
+      )
+        .map((row) => ({
+          stateCode: getStateCode(row),
+          stateName: getStateName(row),
+          code: getDistrictCode(row),
+          name: getDistrictName(row),
+        }))
+        .sort(sortByKeys(["stateCode", "code"])),
+    [validRows]
+  );
+
+  /* ================= SUB-DISTRICT DATA ================= */
+
+  const allSubDistrictData = useMemo(
+    () =>
+      uniqueBy(
+        validRows.filter(
+          (row) =>
+            getDistrictCode(row) &&
+            getSubDistrictCode(row) &&
+            getSubDistrictName(row)
+        ),
+        (row) =>
+          `${getStateCode(row)}-${getDistrictCode(row)}-${getSubDistrictCode(row)}`
+      )
+        .map((row) => ({
+          stateCode: getStateCode(row),
+          stateName: getStateName(row),
+          districtCode: getDistrictCode(row),
+          districtName: getDistrictName(row),
+          code: getSubDistrictCode(row),
+          name: getSubDistrictName(row),
+        }))
+        .sort(sortByKeys(["stateCode", "districtCode", "code"])),
+    [validRows]
+  );
+
+  /* ================= WARD DATA ================= */
+
+  const allWardData = useMemo(
+    () =>
+      uniqueBy(
+        validRows.filter(
+          (row) =>
+            getDistrictCode(row) &&
+            getSubDistrictCode(row) &&
+            getVillageTownCode(row) &&
             getWardName(row)
-          ),
-        ].join("-")
-    ).length;
-  }, [data]);
+        ),
+        (row) =>
+          [
+            getStateCode(row),
+            getDistrictCode(row),
+            getSubDistrictCode(row),
+            getVillageTownCode(row),
+            getWardCode(row),
+            getWardName(row),
+          ].join("-")
+      )
+        .map((row) => ({
+          stateCode: getStateCode(row),
+          stateName: getStateName(row),
+          districtCode: getDistrictCode(row),
+          districtName: getDistrictName(row),
+          subDistrictCode: getSubDistrictCode(row),
+          subDistrictName: getSubDistrictName(row),
+          villageTownCode: getVillageTownCode(row),
+          villageTownName: getVillageTownName(row),
+          code: getWardCode(row),
+          name: getWardName(row),
+        }))
+        .sort(
+          sortByKeys([
+            "stateCode",
+            "districtCode",
+            "subDistrictCode",
+            "villageTownCode",
+            "code",
+          ])
+        ),
+    [validRows]
+  );
 
-  /* =======================================================
-     CURRENT LIST
-  ======================================================= */
+  /* ================= SELECTED DATA ================= */
 
-  const currentData = useMemo(() => {
-    let result = [];
+  const districtData = useMemo(
+    () =>
+      selectedState
+        ? allDistrictData.filter(
+            (row) => row.stateCode === selectedState.code
+          )
+        : allDistrictData,
+    [allDistrictData, selectedState]
+  );
 
-    if (level === "state") {
-      result = stateData;
+  const subDistrictData = useMemo(() => {
+    if (selectedDistrict) {
+      return allSubDistrictData.filter(
+        (row) =>
+          row.stateCode === selectedDistrict.stateCode &&
+          row.districtCode === selectedDistrict.code
+      );
     }
 
+    if (selectedState) {
+      return allSubDistrictData.filter(
+        (row) => row.stateCode === selectedState.code
+      );
+    }
+
+    return allSubDistrictData;
+  }, [allSubDistrictData, selectedState, selectedDistrict]);
+
+  const scopedWardData = useMemo(() => {
+    if (selectedVillageTown) {
+      return allWardData.filter(
+        (row) =>
+          row.stateCode === selectedVillageTown.stateCode &&
+          row.districtCode === selectedVillageTown.districtCode &&
+          row.subDistrictCode === selectedVillageTown.subDistrictCode &&
+          row.villageTownCode === selectedVillageTown.code
+      );
+    }
+
+    if (selectedSubDistrict) {
+      return allWardData.filter(
+        (row) =>
+          row.stateCode === selectedSubDistrict.stateCode &&
+          row.districtCode === selectedSubDistrict.districtCode &&
+          row.subDistrictCode === selectedSubDistrict.code
+      );
+    }
+
+    if (selectedDistrict) {
+      return allWardData.filter(
+        (row) =>
+          row.stateCode === selectedDistrict.stateCode &&
+          row.districtCode === selectedDistrict.code
+      );
+    }
+
+    if (selectedState) {
+      return allWardData.filter(
+        (row) => row.stateCode === selectedState.code
+      );
+    }
+
+    return allWardData;
+  }, [
+    allWardData,
+    selectedState,
+    selectedDistrict,
+    selectedSubDistrict,
+    selectedVillageTown,
+  ]);
+
+  /* ================= TABLE DATA ================= */
+
+  const currentData = useMemo(() => {
+    if (level === "state") return allStateData;
+
     if (level === "district") {
-      result = districtData;
+      return tableMode === "all" ? allDistrictData : districtData;
     }
 
     if (level === "subdistrict") {
-      result = subDistrictData;
+      return tableMode === "all"
+        ? allSubDistrictData
+        : subDistrictData;
     }
 
-    if (level === "villageTown") {
-      result = villageTownData;
-    }
+    if (level === "villageTown") return vtRows;
 
     if (level === "ward") {
-      result = wardData;
+      return tableMode === "all" ? allWardData : scopedWardData;
     }
 
-    if (search.trim() !== "") {
-      const searchValue =
-        normalize(search);
-
-      result = result.filter(
-        (item) =>
-          normalize(
-            item.name
-          ).includes(
-            searchValue
-          ) ||
-          normalize(
-            item.code
-          ).includes(
-            searchValue
-          )
-      );
-    }
-
-    return [...result].sort(
-      (a, b) =>
-        compareValues(
-          a,
-          b,
-          sortField,
-          sortDirection
-        )
-    );
+    return [];
   }, [
     level,
-    stateData,
+    tableMode,
+    allStateData,
+    allDistrictData,
     districtData,
+    allSubDistrictData,
     subDistrictData,
-    villageTownData,
-    wardData,
-    search,
-    sortField,
-    sortDirection,
+    vtRows,
+    allWardData,
+    scopedWardData,
   ]);
 
-  /* =======================================================
-     COUNT BOX COUNTS
-  ======================================================= */
+  const filteredTableData = useMemo(() => {
+    const query = normalize(debouncedSearch);
 
-  const stateBoxCount = selectedState
-    ? districtData.length
-    : stateData.length;
+    if (!query) return currentData;
 
-  const districtBoxCount =
-    selectedDistrict
-      ? subDistrictData.length
-      : selectedState
-      ? districtData.length
-      : totalDistricts;
+    return currentData.filter((item) =>
+      [
+        item.code,
+        item.name,
+        item.type,
+        item.stateCode,
+        item.stateName,
+        item.districtCode,
+        item.districtName,
+        item.subDistrictCode,
+        item.subDistrictName,
+        item.villageTownCode,
+        item.villageTownName,
+        item.wardCode,
+        item.wardName,
+      ].some((value) => normalize(value).includes(query))
+    );
+  }, [currentData, debouncedSearch]);
 
-  const subDistrictBoxCount =
-    selectedSubDistrict
-      ? villageTownData.length
-      : selectedDistrict
-      ? subDistrictData.length
-      : totalSubDistricts;
+  const sortedTableData = useMemo(() => {
+    const rows = [...filteredTableData];
 
-  const villageTownBoxCount =
-    selectedVillageTown
-      ? wardData.length
-      : selectedSubDistrict
-      ? villageTownData.length
-      : totalVillageTowns;
+    rows.sort((a, b) => {
+      const result = numCmp(a[sortBy], b[sortBy]);
+      return sortDirection === "asc" ? result : -result;
+    });
 
-  const wardBoxCount =
-    selectedVillageTown
-      ? wardData.length
-      : totalWards;
+    return rows;
+  }, [filteredTableData, sortBy, sortDirection]);
 
-  /* =======================================================
-     SORT HANDLER
-  ======================================================= */
+  /* ================= CONTROLS ================= */
 
-  const handleSort = (field) => {
-    if (
-      sortField === field
-    ) {
-      setSortDirection(
-        (previous) =>
-          previous === "asc"
-            ? "desc"
-            : "asc"
+  const resetTableControls = () => {
+    setSearch("");
+    setDebouncedSearch("");
+    setSortBy("code");
+    setSortDirection("asc");
+  };
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortDirection((prev) =>
+        prev === "asc" ? "desc" : "asc"
       );
     } else {
-      setSortField(field);
+      setSortBy(column);
       setSortDirection("asc");
     }
   };
 
-  /* =======================================================
-     STATE CLICK
-  ======================================================= */
+  const sortIcon = (column) =>
+    sortBy === column
+      ? sortDirection === "asc"
+        ? " ↑"
+        : " ↓"
+      : " ↕";
 
-  const handleStateClick = (
-    state
-  ) => {
-    const code =
-      clean(state.code);
+  /* ================= COUNT BOX ACTIONS ================= */
 
-    if (
-      code !== "25" &&
-      code !== "26"
-    ) {
-      return;
-    }
+  const handleStateBoxClick = () => {
+    resetTableControls();
+    setLevel("state");
+    setTableMode("all");
+  };
 
-    setSelectedState({
-      code,
+  const handleDistrictBoxClick = () => {
+    resetTableControls();
+    setLevel("district");
+    setTableMode(selectedState ? "selected" : "all");
+  };
 
-      name:
-        code === "25"
-          ? "Gujarat"
-          : "Dadra and Nagar Haveli and Daman and Diu",
-    });
+  const handleSubDistrictBoxClick = () => {
+    resetTableControls();
+    setLevel("subdistrict");
+    setTableMode(
+      selectedDistrict || selectedState ? "selected" : "all"
+    );
+  };
 
+  const handleVillageTownBoxClick = () => {
+    resetTableControls();
+    setLevel("villageTown");
+    setTableMode(
+      selectedSubDistrict || selectedDistrict || selectedState
+        ? "selected"
+        : "all"
+    );
+  };
+
+  const handleWardBoxClick = () => {
+    resetTableControls();
+    setLevel("ward");
+    setTableMode(
+      selectedVillageTown ||
+        selectedSubDistrict ||
+        selectedDistrict ||
+        selectedState
+        ? "selected"
+        : "all"
+    );
+  };
+
+  /* ================= ROW ACTIONS ================= */
+
+  const handleStateRowClick = (item) => {
+    resetTableControls();
+    setSelectedState({ code: item.code, name: item.name });
     setSelectedDistrict(null);
     setSelectedSubDistrict(null);
     setSelectedVillageTown(null);
     setSelectedWard(null);
-
-    setSearch("");
-
-    setSortField("code");
-    setSortDirection("asc");
-
     setLevel("district");
+    setTableMode("selected");
   };
 
-  /* =======================================================
-     DISTRICT CLICK
-  ======================================================= */
+  const handleDistrictRowClick = (item) => {
+    resetTableControls();
 
-  const handleDistrictClick = (
-    district
-  ) => {
+    setSelectedState({
+      code: item.stateCode,
+      name: item.stateName,
+    });
+
     setSelectedDistrict({
-      code: clean(
-        district.code
-      ),
-
-      name: clean(
-        district.name
-      ),
+      stateCode: item.stateCode,
+      code: item.code,
+      name: item.name,
     });
 
     setSelectedSubDistrict(null);
     setSelectedVillageTown(null);
     setSelectedWard(null);
-
-    setSearch("");
-
-    setSortField("code");
-    setSortDirection("asc");
-
     setLevel("subdistrict");
+    setTableMode("selected");
   };
 
-  /* =======================================================
-     SUB DISTRICT CLICK
-  ======================================================= */
+  const handleSubDistrictRowClick = (item) => {
+    resetTableControls();
 
-  const handleSubDistrictClick = (
-    subDistrict
-  ) => {
+    setSelectedState({
+      code: item.stateCode,
+      name: item.stateName,
+    });
+
+    setSelectedDistrict({
+      stateCode: item.stateCode,
+      code: item.districtCode,
+      name: item.districtName,
+    });
+
     setSelectedSubDistrict({
-      code: clean(
-        subDistrict.code
-      ),
-
-      name: clean(
-        subDistrict.name
-      ),
+      stateCode: item.stateCode,
+      districtCode: item.districtCode,
+      code: item.code,
+      name: item.name,
     });
 
     setSelectedVillageTown(null);
     setSelectedWard(null);
-
-    setSearch("");
-
-    setSortField("code");
-    setSortDirection("asc");
-
     setLevel("villageTown");
+    setTableMode("selected");
   };
 
-  /* =======================================================
-     VILLAGE / TOWN CLICK
-  ======================================================= */
+  const handleVillageTownRowClick = (item) => {
+    resetTableControls();
 
-  const handleVillageTownClick = (
-    villageTown
-  ) => {
+    setSelectedState({
+      code: item.stateCode,
+      name: item.stateName,
+    });
+
+    setSelectedDistrict({
+      stateCode: item.stateCode,
+      code: item.districtCode,
+      name: item.districtName,
+    });
+
+    setSelectedSubDistrict({
+      stateCode: item.stateCode,
+      districtCode: item.districtCode,
+      code: item.subDistrictCode,
+      name: item.subDistrictName,
+    });
+
     setSelectedVillageTown({
-      code: clean(
-        villageTown.code
-      ),
-
-      name: clean(
-        villageTown.name
-      ),
-
-      type: clean(
-        villageTown.type
-      ),
+      stateCode: item.stateCode,
+      districtCode: item.districtCode,
+      subDistrictCode: item.subDistrictCode,
+      code: item.code,
+      name: item.name,
+      type: item.type,
     });
 
     setSelectedWard(null);
-
-    setSearch("");
-
-    setSortField("code");
-    setSortDirection("asc");
-
     setLevel("ward");
+    setTableMode("selected");
   };
 
-  /* =======================================================
-     WARD CLICK
-  ======================================================= */
-
-  const handleWardClick = (
-    ward
-  ) => {
+  const handleWardRowClick = (item) => {
     setSelectedWard({
-      code: clean(ward.code),
-      name: clean(ward.name),
+      stateCode: item.stateCode,
+      districtCode: item.districtCode,
+      subDistrictCode: item.subDistrictCode,
+      villageTownCode: item.villageTownCode,
+      code: item.code,
+      name: item.name,
     });
-
-    setSearch("");
-
-    setSortField("code");
-    setSortDirection("asc");
   };
 
-  /* =======================================================
-     ROW CLICK
-  ======================================================= */
-
-  const handleItemClick = (
-    item
-  ) => {
-    if (level === "state") {
-      handleStateClick(item);
-      return;
-    }
-
-    if (level === "district") {
-      handleDistrictClick(item);
-      return;
-    }
-
-    if (
-      level === "subdistrict"
-    ) {
-      handleSubDistrictClick(
-        item
-      );
-      return;
-    }
-
-    if (
-      level === "villageTown"
-    ) {
-      handleVillageTownClick(
-        item
-      );
-      return;
-    }
-
-    if (level === "ward") {
-      handleWardClick(item);
-    }
+  const handleRowClick = (item) => {
+    if (level === "state") return handleStateRowClick(item);
+    if (level === "district") return handleDistrictRowClick(item);
+    if (level === "subdistrict") return handleSubDistrictRowClick(item);
+    if (level === "villageTown") return handleVillageTownRowClick(item);
+    if (level === "ward") return handleWardRowClick(item);
   };
 
-  /* =======================================================
-     BACK
-  ======================================================= */
+  /* ================= BACK ================= */
 
   const handleBack = () => {
-    setSearch("");
+    resetTableControls();
 
-    setSortField("code");
-    setSortDirection("asc");
-
-    if (level === "ward") {
+    if (level === "ward" && selectedVillageTown) {
       setSelectedWard(null);
-      setSelectedVillageTown(null);
-
-      setLevel(
-        "villageTown"
-      );
-
+      setLevel("villageTown");
+      setTableMode("selected");
       return;
     }
 
-    if (
-      level === "villageTown"
-    ) {
-      setSelectedSubDistrict(null);
+    if (level === "villageTown" && selectedSubDistrict) {
       setSelectedVillageTown(null);
       setSelectedWard(null);
-
-      setLevel(
-        "subdistrict"
-      );
-
+      setLevel("subdistrict");
+      setTableMode("selected");
       return;
     }
 
-    if (
-      level === "subdistrict"
-    ) {
-      setSelectedDistrict(null);
+    if (level === "subdistrict" && selectedDistrict) {
       setSelectedSubDistrict(null);
       setSelectedVillageTown(null);
       setSelectedWard(null);
-
       setLevel("district");
-
+      setTableMode("selected");
       return;
     }
 
-    if (
-      level === "district"
-    ) {
-      setSelectedState(null);
+    if (level === "district" && selectedState) {
       setSelectedDistrict(null);
       setSelectedSubDistrict(null);
       setSelectedVillageTown(null);
       setSelectedWard(null);
-
       setLevel("state");
+      setTableMode("all");
+      return;
     }
+
+    setLevel("state");
+    setTableMode("all");
   };
 
-  /* =======================================================
-     BREADCRUMB - STATE
-  ======================================================= */
+  /* ================= BREADCRUMBS ================= */
 
-  const goState = () => {
+  const handleBreadcrumbState = () => {
+    resetTableControls();
     setSelectedState(null);
     setSelectedDistrict(null);
     setSelectedSubDistrict(null);
     setSelectedVillageTown(null);
     setSelectedWard(null);
-
-    setSearch("");
-
-    setSortField("code");
-    setSortDirection("asc");
-
     setLevel("state");
+    setTableMode("all");
   };
 
-  /* =======================================================
-     BREADCRUMB - DISTRICT
-  ======================================================= */
+  const handleBreadcrumbSelectedState = () => {
+    if (!selectedState) return;
 
-  const goDistrict = () => {
-    if (!selectedState) {
-      goState();
-      return;
-    }
-
+    resetTableControls();
     setSelectedDistrict(null);
     setSelectedSubDistrict(null);
     setSelectedVillageTown(null);
     setSelectedWard(null);
-
-    setSearch("");
-
-    setSortField("code");
-    setSortDirection("asc");
-
     setLevel("district");
+    setTableMode("selected");
   };
 
-  /* =======================================================
-     BREADCRUMB - SUB DISTRICT
-  ======================================================= */
+  const handleBreadcrumbSelectedDistrict = () => {
+    if (!selectedDistrict) return;
 
-  const goSubDistrict = () => {
-    if (!selectedState) {
-      goState();
-      return;
-    }
-
-    if (!selectedDistrict) {
-      goDistrict();
-      return;
-    }
-
+    resetTableControls();
     setSelectedSubDistrict(null);
     setSelectedVillageTown(null);
     setSelectedWard(null);
-
-    setSearch("");
-
-    setSortField("code");
-    setSortDirection("asc");
-
     setLevel("subdistrict");
+    setTableMode("selected");
   };
 
-  /* =======================================================
-     BREADCRUMB - VILLAGE / TOWN
-  ======================================================= */
+  const handleBreadcrumbSelectedSubDistrict = () => {
+    if (!selectedSubDistrict) return;
 
-  const goVillageTown = () => {
-    if (!selectedState) {
-      goState();
-      return;
-    }
-
-    if (!selectedDistrict) {
-      goDistrict();
-      return;
-    }
-
-    if (!selectedSubDistrict) {
-      goSubDistrict();
-      return;
-    }
-
+    resetTableControls();
     setSelectedVillageTown(null);
     setSelectedWard(null);
-
-    setSearch("");
-
-    setSortField("code");
-    setSortDirection("asc");
-
     setLevel("villageTown");
+    setTableMode("selected");
   };
 
-  /* =======================================================
-     BREADCRUMB - WARD
-  ======================================================= */
+  const handleBreadcrumbSelectedVillageTown = () => {
+    if (!selectedVillageTown) return;
 
-  const goWard = () => {
-    if (!selectedState) {
-      goState();
-      return;
-    }
-
-    if (!selectedDistrict) {
-      goDistrict();
-      return;
-    }
-
-    if (!selectedSubDistrict) {
-      goSubDistrict();
-      return;
-    }
-
-    if (!selectedVillageTown) {
-      goVillageTown();
-      return;
-    }
-
-    setSearch("");
-
-    setSortField("code");
-    setSortDirection("asc");
-
+    resetTableControls();
+    setSelectedWard(null);
     setLevel("ward");
+    setTableMode("selected");
   };
 
-  /* =======================================================
-     TABLE TITLE
-  ======================================================= */
+  /* ================= TABLE TITLE ================= */
 
-  const getTableTitle = () => {
-    if (level === "state") {
-      return "State / UT";
-    }
+  const getLevelTitle = () => {
+    if (level === "state") return "State / UT";
 
     if (level === "district") {
+      return tableMode === "selected" && selectedState
+        ? `${selectedState.name} - District`
+        : "All Districts";
+    }
+
+    if (level === "subdistrict") {
+      if (tableMode === "selected" && selectedDistrict) {
+        return `${selectedDistrict.name} - Sub-District`;
+      }
+
+      if (tableMode === "selected" && selectedState) {
+        return `${selectedState.name} - Sub-District`;
+      }
+
+      return "All Sub-Districts";
+    }
+
+    if (level === "villageTown") {
+      if (tableMode === "selected" && selectedSubDistrict) {
+        return `${selectedSubDistrict.name} - Village / Town`;
+      }
+
+      if (tableMode === "selected" && selectedDistrict) {
+        return `${selectedDistrict.name} - Village / Town`;
+      }
+
+      if (tableMode === "selected" && selectedState) {
+        return `${selectedState.name} - Village / Town`;
+      }
+
+      return "All Village / Town";
+    }
+
+    if (level === "ward") {
+      if (tableMode === "selected" && selectedVillageTown) {
+        return `${selectedVillageTown.name} - Ward`;
+      }
+
+      if (tableMode === "selected" && selectedSubDistrict) {
+        return `${selectedSubDistrict.name} - Ward`;
+      }
+
+      if (tableMode === "selected" && selectedDistrict) {
+        return `${selectedDistrict.name} - Ward`;
+      }
+
+      if (tableMode === "selected" && selectedState) {
+        return `${selectedState.name} - Ward`;
+      }
+
+      return "All Wards";
+    }
+
+    return "Administrative Units";
+  };
+
+  /* ================= EXCEL ================= */
+
+  const getCurrentExcelRows = () =>
+    sortedTableData.map((item, index) => {
+      const common = { "Sr. No.": index + 1 };
+
+      if (level === "state") {
+        return {
+          ...common,
+          "State Code": item.code,
+          "State / UT Name": item.name,
+        };
+      }
+
+      if (level === "district") {
+        return {
+          ...common,
+          "State Code": item.stateCode,
+          "State / UT Name": item.stateName,
+          "District Code": item.code,
+          "District Name": item.name,
+        };
+      }
+
+      if (level === "subdistrict") {
+        return {
+          ...common,
+          "State Code": item.stateCode,
+          "State / UT Name": item.stateName,
+          "District Code": item.districtCode,
+          "District Name": item.districtName,
+          "Sub-District Code": item.code,
+          "Sub-District Name": item.name,
+        };
+      }
+
+      if (level === "villageTown") {
+        return {
+          ...common,
+          "State Code": item.stateCode,
+          "State / UT Name": item.stateName,
+          "District Code": item.districtCode,
+          "District Name": item.districtName,
+          "Sub-District Code": item.subDistrictCode,
+          "Sub-District Name": item.subDistrictName,
+          "Village / Town Code": item.code,
+          "Village / Town Name": item.name,
+          Type: item.type,
+          "Ward Code": item.wardCode,
+          "Ward Name": item.wardName,
+        };
+      }
+
+      return {
+        ...common,
+        "State Code": item.stateCode,
+        "State / UT Name": item.stateName,
+        "District Code": item.districtCode,
+        "District Name": item.districtName,
+        "Sub-District Code": item.subDistrictCode,
+        "Sub-District Name": item.subDistrictName,
+        "Village / Town Code": item.villageTownCode,
+        "Village / Town Name": item.villageTownName,
+        "Ward Code": item.code,
+        "Ward Name": item.name,
+      };
+    });
+
+  const downloadCurrentExcel = () => {
+    const rows = getCurrentExcelRows();
+    if (!rows.length) return;
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Administrative Units"
+    );
+
+    XLSX.writeFile(workbook, `census-2027-${level}.xlsx`);
+  };
+
+  const downloadFullDataExcel = () => {
+    if (!data.length) return;
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Full Data");
+    XLSX.writeFile(workbook, "census-2027-full-data.xlsx");
+  };
+
+  /* ================= COUNT BOXES ================= */
+
+  const countBoxes = [
+    {
+      key: "state",
+      label: "State / UT",
+      name: selectedState?.name || "Select State / UT",
+      count: selectedState ? 1 : allStateData.length,
+      onClick: handleStateBoxClick,
+    },
+    {
+      key: "district",
+      label: "District",
+      name: selectedDistrict?.name || "Select District",
+      count: districtData.length,
+      onClick: handleDistrictBoxClick,
+    },
+    {
+      key: "subdistrict",
+      label: "Sub-District",
+      name: selectedSubDistrict?.name || "Select Sub-District",
+      count: subDistrictData.length,
+      onClick: handleSubDistrictBoxClick,
+    },
+    {
+      key: "villageTown",
+      label: "Village & Town",
+      name: selectedVillageTown?.name || "Select Village & Town",
+      count: vtScopeTotal,
+      onClick: handleVillageTownBoxClick,
+    },
+    {
+      key: "ward",
+      label: "Ward",
+      name: selectedWard?.name || "Select Ward",
+      count: scopedWardData.length,
+      onClick: handleWardBoxClick,
+    },
+  ];
+
+  /* ================= VIRTUAL TABLE ================= */
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    setScrollTop(0);
+  }, [
+    level,
+    tableMode,
+    debouncedSearch,
+    sortBy,
+    sortDirection,
+    selectedState,
+    selectedDistrict,
+    selectedSubDistrict,
+    selectedVillageTown,
+  ]);
+
+  const renderTable = () => {
+    if (loading || (level === "villageTown" && vtLoading)) {
       return (
-        selectedState?.name ||
-        "District"
+        <div className="loading-box">
+          Loading administrative units...
+        </div>
       );
     }
 
-    if (
-      level === "subdistrict"
-    ) {
+    if (error) {
       return (
-        selectedDistrict?.name ||
-        "Sub-District"
+        <div className="error-box">
+          <strong>Error:</strong> {error}
+          <br />
+          <span>Please check backend localhost:5000.</span>
+        </div>
       );
     }
 
-    if (
-      level === "villageTown"
-    ) {
-      return (
-        selectedSubDistrict?.name ||
-        "Village & Town"
-      );
+    if (!sortedTableData.length) {
+      return <div className="empty-box">No records found.</div>;
     }
+
+    const total = sortedTableData.length;
+
+    const start = Math.max(
+      Math.floor(scrollTop / ROW_H) - OVERSCAN,
+      0
+    );
+
+    const end = Math.min(
+      start + Math.ceil(VIEW_H / ROW_H) + OVERSCAN * 2,
+      total
+    );
+
+    const visibleRows = sortedTableData.slice(start, end);
+
+    const headers = {
+      state: [
+        ["code", "State Code"],
+        ["name", "State / UT Name"],
+      ],
+      district: [
+        ["stateCode", "State Code"],
+        ["stateName", "State / UT Name"],
+        ["code", "District Code"],
+        ["name", "District Name"],
+      ],
+      subdistrict: [
+        ["stateCode", "State Code"],
+        ["stateName", "State / UT Name"],
+        ["districtCode", "District Code"],
+        ["districtName", "District Name"],
+        ["code", "Sub-District Code"],
+        ["name", "Sub-District Name"],
+      ],
+      villageTown: [
+        ["stateCode", "State Code"],
+        ["stateName", "State / UT Name"],
+        ["districtCode", "District Code"],
+        ["districtName", "District Name"],
+        ["subDistrictCode", "Sub-District Code"],
+        ["subDistrictName", "Sub-District Name"],
+        ["code", "Village / Town Code"],
+        ["name", "Village / Town Name"],
+        ["type", "Type"],
+        ["wardCode", "Ward Code"],
+        ["wardName", "Ward Name"],
+      ],
+      ward: [
+        ["stateCode", "State Code"],
+        ["stateName", "State / UT Name"],
+        ["districtCode", "District Code"],
+        ["districtName", "District Name"],
+        ["subDistrictCode", "Sub-District Code"],
+        ["subDistrictName", "Sub-District Name"],
+        ["villageTownCode", "Village / Town Code"],
+        ["villageTownName", "Village / Town Name"],
+        ["code", "Ward Code"],
+        ["name", "Ward Name"],
+      ],
+    };
+
+    const columns = headers[level] || [];
+    const colSpan = columns.length + 1;
 
     return (
-      selectedVillageTown?.name ||
-      "Ward"
+      <div
+        className="table-scroll"
+        ref={scrollRef}
+        style={{ maxHeight: VIEW_H, overflow: "auto" }}
+        onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
+      >
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th className="serial-col">Sr. No.</th>
+
+              {columns.map(([key, label]) => (
+                <th
+                  key={key}
+                  className={
+                    ["code", "name", "type"].includes(key)
+                      ? "sortable"
+                      : ""
+                  }
+                  onClick={() => {
+                    if (["code", "name", "type"].includes(key)) {
+                      handleSort(key);
+                    }
+                  }}
+                >
+                  {label}
+
+                  {["code", "name", "type"].includes(key) && (
+                    <span className="sort-icon">
+                      {sortIcon(key)}
+                    </span>
+                  )}
+                </th>
+              ))}
+            </tr>
+          </thead>
+
+          <tbody>
+            {start > 0 && (
+              <tr style={{ height: start * ROW_H }}>
+                <td
+                  colSpan={colSpan}
+                  style={{ padding: 0, border: 0 }}
+                />
+              </tr>
+            )}
+
+            {visibleRows.map((item, i) => {
+              const index = start + i;
+
+              const isSelected =
+                level === "ward" &&
+                selectedWard?.code === item.code &&
+                selectedWard?.name === item.name;
+
+              return (
+                <tr
+                  key={`${item.stateCode || ""}-${
+                    item.districtCode || ""
+                  }-${item.subDistrictCode || ""}-${
+                    item.villageTownCode || ""
+                  }-${item.code}-${index}`}
+                  onClick={() => handleRowClick(item)}
+                  className={isSelected ? "selected-row" : ""}
+                >
+                  <td className="serial-col">{index + 1}</td>
+
+                  {columns.map(([key]) => (
+                    <td key={key} className={`${key}-cell`}>
+                      {clean(item[key]) || "-"}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+
+            {end < total && (
+              <tr style={{ height: (total - end) * ROW_H }}>
+                <td
+                  colSpan={colSpan}
+                  style={{ padding: 0, border: 0 }}
+                />
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     );
   };
 
-  /* =======================================================
-     LOADING
-  ======================================================= */
-
-  if (loading) {
-    return (
-      <div className="admin-page">
-        <div className="loading-box">
-          Loading administrative data...
-        </div>
-      </div>
-    );
-  }
-
-  /* =======================================================
-     ERROR
-  ======================================================= */
-
-  if (error) {
-    return (
-      <div className="admin-page">
-        <div className="error-box">
-          <h3>
-            Failed to load administrative data
-          </h3>
-
-          <p>{error}</p>
-
-          <button
-            onClick={() =>
-              window.location.reload()
-            }
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  /* =======================================================
-     MAIN UI
-  ======================================================= */
+  /* ================= JSX ================= */
 
   return (
     <div className="admin-page">
-
-      {/* =================================================
-          HEADER
-      ================================================= */}
+      {/* HEADER */}
 
       <div className="admin-header">
         <div>
-          <h1>
-            Census 2027
-          </h1>
+          <h1>Census 2027</h1>
+          <p>Administrative Units</p>
+        </div>
 
-          <p>
-            Administrative Units
-          </p>
+        <div className="header-actions">
+          <button
+            type="button"
+            className="excel-btn"
+            onClick={downloadCurrentExcel}
+          >
+            <span>⬇</span> Current Excel
+          </button>
+
+          <button
+            type="button"
+            className="excel-btn full-excel-btn"
+            onClick={downloadFullDataExcel}
+          >
+            <span>⬇</span> Full Data Excel
+          </button>
         </div>
       </div>
 
-      {/* =================================================
-          COUNT BOXES
-          
-          IMPORTANT:
-          Selected level = ONLY NAME
-          Unselected level = NAME + COUNT
-      ================================================= */}
+      {/* COUNT BOXES */}
 
-      <div className="count-grid">
+     
+<div className="count-grid">
+  {countBoxes.map((box) => (
+    <button
+      key={box.key}
+      type="button"
+      className={`count-box ${
+        level === box.key ? "active-box" : ""
+      }`}
+      onClick={box.onClick}
+      aria-label={`${box.label}: ${box.name}, count ${box.count}`}
+    >
+      <span className="count-box-label">
+        {box.label}
+      </span>
 
-        {/* ================= STATE / UT ================= */}
+      <span className="count-box-name">
+        {box.name}
+      </span>
 
-        <div className={`count-box ${selectedState ? "selected-box" : ""}`}>
-          <span className="count-label">State / UT</span>
-          {selectedState ? (
-            <strong className="selected-name">{selectedState.name}</strong>
-          ) : (
-            <strong>{stateBoxCount}</strong>
-          )}
-        </div>
-
-        {/* ================= DISTRICT ================= */}
-
-        <div className={`count-box ${selectedDistrict ? "selected-box" : ""}`}>
-          <span className="count-label">District</span>
-          {selectedDistrict ? (
-            <strong className="selected-name">{selectedDistrict.name}</strong>
-          ) : (
-            <strong>{districtBoxCount}</strong>
-          )}
-        </div>
-
-        {/* ================= SUB DISTRICT ================= */}
-
-        <div className={`count-box ${selectedSubDistrict ? "selected-box" : ""}`}>
-          <span className="count-label">Sub-District</span>
-          {selectedSubDistrict ? (
-            <strong className="selected-name">{selectedSubDistrict.name}</strong>
-          ) : (
-            <strong>{subDistrictBoxCount}</strong>
-          )}
-        </div>
-
-        {/* ================= VILLAGE / TOWN ================= */}
-
-        <div className={`count-box ${selectedVillageTown ? "selected-box" : ""}`}>
-          <span className="count-label">Village & Town</span>
-          {selectedVillageTown ? (
-            <strong className="selected-name">{selectedVillageTown.name}</strong>
-          ) : (
-            <strong>{villageTownBoxCount}</strong>
-          )}
-        </div>
-
-        {/* ================= WARD ================= */}
-
-        <div className={`count-box ${selectedWard ? "selected-box" : ""}`}>
-          <span className="count-label">Ward</span>
-          {selectedWard ? (
-            <strong className="selected-name">{selectedWard.name}</strong>
-          ) : (
-            <strong>{wardBoxCount}</strong>
-          )}
-        </div>
-
-      </div>
-
-      {/* =================================================
-          BREADCRUMB
-      ================================================= */}
+      <strong>{box.count}</strong>
+    </button>
+  ))}
+</div>
+      {/* BREADCRUMB */}
 
       <div className="breadcrumb">
-
         <button
-          onClick={goState}
-          className={
-            level === "state"
-              ? "active"
-              : ""
-          }
+          type="button"
+          onClick={handleBreadcrumbState}
+          className={level === "state" ? "breadcrumb-active" : ""}
         >
           State / UT
         </button>
@@ -1507,13 +1353,11 @@ export default function AdminUnits() {
         {selectedState && (
           <>
             <span>›</span>
-
             <button
-              onClick={goDistrict}
+              type="button"
+              onClick={handleBreadcrumbSelectedState}
               className={
-                level === "district"
-                  ? "active"
-                  : ""
+                level === "district" ? "breadcrumb-active" : ""
               }
             >
               {selectedState.name}
@@ -1524,16 +1368,11 @@ export default function AdminUnits() {
         {selectedDistrict && (
           <>
             <span>›</span>
-
             <button
-              onClick={
-                goSubDistrict
-              }
+              type="button"
+              onClick={handleBreadcrumbSelectedDistrict}
               className={
-                level ===
-                "subdistrict"
-                  ? "active"
-                  : ""
+                level === "subdistrict" ? "breadcrumb-active" : ""
               }
             >
               {selectedDistrict.name}
@@ -1544,16 +1383,11 @@ export default function AdminUnits() {
         {selectedSubDistrict && (
           <>
             <span>›</span>
-
             <button
-              onClick={
-                goVillageTown
-              }
+              type="button"
+              onClick={handleBreadcrumbSelectedSubDistrict}
               className={
-                level ===
-                "villageTown"
-                  ? "active"
-                  : ""
+                level === "villageTown" ? "breadcrumb-active" : ""
               }
             >
               {selectedSubDistrict.name}
@@ -1564,232 +1398,63 @@ export default function AdminUnits() {
         {selectedVillageTown && (
           <>
             <span>›</span>
-
             <button
-              onClick={goWard}
-              className={
-                level === "ward"
-                  ? "active"
-                  : ""
-              }
+              type="button"
+              onClick={handleBreadcrumbSelectedVillageTown}
+              className={level === "ward" ? "breadcrumb-active" : ""}
             >
               {selectedVillageTown.name}
             </button>
           </>
         )}
-
-        {selectedWard && (
-          <>
-            <span>›</span>
-
-            <button className="active">
-              {selectedWard.name}
-            </button>
-          </>
-        )}
-
       </div>
 
-      {/* =================================================
-          TOOLBAR
-      ================================================= */}
-
-      <div className="toolbar">
-
-        {level !== "state" && (
-          <button
-            className="back-button"
-            onClick={handleBack}
-          >
-            ← Back
-          </button>
-        )}
-
-        <div className="search-box">
-          <input
-            type="text"
-            value={search}
-            onChange={(event) =>
-              setSearch(
-                event.target.value
-              )
-            }
-            placeholder={`Search ${getTableTitle()}...`}
-          />
-        </div>
-
-      </div>
-
-      {/* =================================================
-          TABLE CARD
-      ================================================= */}
+      {/* TABLE CARD */}
 
       <div className="table-card">
-
-        <div className="table-card-header">
-
+        <div className="table-header">
           <div>
-
-            <h2>
-              {getTableTitle()}
-            </h2>
-
+            <h2>{getLevelTitle()}</h2>
             <p>
-              {currentData.length} record
-              {currentData.length !==
-              1
-                ? "s"
-                : ""}
+              Showing <strong>{sortedTableData.length}</strong> records
             </p>
-
           </div>
 
-        </div>
+          <div className="table-tools">
+            <button
+              type="button"
+              className="back-btn"
+              onClick={handleBack}
+            >
+              ← Back
+            </button>
 
-        {/* =================================================
-            DESKTOP TABLE
-        ================================================= */}
+            <div className="search-box">
+              <span>⌕</span>
 
-        <div className="desktop-table">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search..."
+              />
 
-          <table>
-
-            <thead>
-
-              <tr>
-
-                <th>
-                  Sr. No.
-                </th>
-
-                <th
-                  className="sortable"
-                  onClick={() =>
-                    handleSort("code")
-                  }
+              {search && (
+                <button
+                  type="button"
+                  aria-label="Clear search"
+                  onClick={() => setSearch("")}
                 >
-                  Code
-
-                  {sortField ===
-                    "code" &&
-                    (sortDirection ===
-                    "asc"
-                      ? " ↑"
-                      : " ↓")}
-                </th>
-
-                <th
-                  className="sortable"
-                  onClick={() =>
-                    handleSort("name")
-                  }
-                >
-                  Name
-
-                  {sortField ===
-                    "name" &&
-                    (sortDirection ===
-                    "asc"
-                      ? " ↑"
-                      : " ↓")}
-                </th>
-
-                {level ===
-                  "villageTown" && (
-                  <th>
-                    Type
-                  </th>
-                )}
-
-              </tr>
-
-            </thead>
-
-            <tbody>
-
-              {currentData.length ===
-              0 ? (
-                <tr>
-
-                  <td
-                    colSpan={
-                      level ===
-                      "villageTown"
-                        ? 4
-                        : 3
-                    }
-                    className="no-data"
-                  >
-                    No data found
-                  </td>
-
-                </tr>
-              ) : (
-                currentData.map(
-                  (
-                    item,
-                    index
-                  ) => (
-                    <tr
-                      key={`${item.code}-${item.name}-${index}`}
-                      className={
-                        level !==
-                        "ward"
-                          ? "clickable-row"
-                          : "clickable-row"
-                      }
-                      onClick={() =>
-                        handleItemClick(
-                          item
-                        )
-                      }
-                    >
-
-                      <td>
-                        {index + 1}
-                      </td>
-
-                      <td>
-                        {item.code ||
-                          "-"}
-                      </td>
-
-                      <td>
-
-                        <span className="clickable-name">
-                          {item.name ||
-                            "-"}
-                        </span>
-
-                      </td>
-
-                      {level ===
-                        "villageTown" && (
-                        <td>
-                          {item.type ||
-                            "-"}
-                        </td>
-                      )}
-
-                    </tr>
-                  )
-                )
+                  ×
+                </button>
               )}
-
-            </tbody>
-
-          </table>
-
+            </div>
+          </div>
         </div>
 
-        {/* =================================================
-            MOBILE / TABLET
-            Same table is used at every screen size.
-            CSS below makes this area horizontally scrollable.
-        ================================================= */}
-
+        {renderTable()}
       </div>
-
     </div>
   );
 }
+

@@ -221,3 +221,166 @@
 
 
 
+.nav-user {
+  position: relative;
+  margin-left: 10px;
+}
+
+.nav-user-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: #fff;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.nav-user-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1000;
+  width: 230px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #dce5f0;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+}
+
+.nav-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  color: #17365d;
+  overflow-wrap: anywhere;
+}
+
+.nav-user-info span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.nav-user-menu button {
+  display: block;
+  width: 100%;
+  padding: 11px 12px;
+  text-align: left;
+  color: #24364b;
+  background: #fff;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.nav-user-menu button:hover {
+  background: #eef4fb;
+}
+
+.password-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.password-modal {
+  width: 100%;
+  max-width: 430px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.password-modal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.password-modal-heading h2 {
+  margin: 0;
+  color: #17365d;
+  font-size: 21px;
+}
+
+.password-modal-heading button {
+  border: 0;
+  background: transparent;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.password-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.password-modal label {
+  margin-top: 4px;
+  color: #26374d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.password-modal input {
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 15px;
+}
+
+.password-save {
+  min-height: 44px;
+  margin-top: 10px;
+  color: #fff;
+  background: #17365d;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.password-save:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.password-error {
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+.password-success {
+  color: #15803d;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .nav-user {
+    margin: 8px 0;
+  }
+
+  .nav-user-menu {
+    right: auto;
+    left: 0;
+  }
+
+  .password-modal {
+    padding: 20px;
+  }
+}
