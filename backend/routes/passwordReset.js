@@ -160,8 +160,8 @@ router.post(
     }
 
     if (
-      newPassword.length < 12 ||
-      newPassword.length > 128 ||
+      newPassword.length < 6 ||
+      newPassword.length > 12 ||
       !/[a-z]/.test(newPassword) ||
       !/[A-Z]/.test(newPassword) ||
       !/[0-9]/.test(newPassword)
@@ -169,7 +169,7 @@ router.post(
       return res.status(400).json({
         success: false,
         message:
-          "Use 12–128 characters with uppercase, lowercase and a number.",
+          "Use 6–12 characters with uppercase, lowercase and a number.",
       });
     }
 

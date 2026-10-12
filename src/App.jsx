@@ -58,11 +58,12 @@ const ROLE_PERMISSIONS = {
    AUTH HELPERS
 ========================================= */
 
+
 function getLoggedInUser() {
   try {
     return JSON.parse(
-      localStorage.getItem("census_user") ||
-        localStorage.getItem("user") ||
+      sessionStorage.getItem("census_user") ||
+        sessionStorage.getItem("user") ||
         "null"
     );
   } catch {
@@ -72,10 +73,11 @@ function getLoggedInUser() {
 
 function getAuthToken() {
   return (
-    localStorage.getItem("census_token") ||
-    localStorage.getItem("token")
+    sessionStorage.getItem("census_token") ||
+    sessionStorage.getItem("token")
   );
 }
+
 
 function hasPermission(role, permission) {
   return Boolean(

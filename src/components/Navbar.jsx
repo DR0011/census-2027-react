@@ -17,26 +17,39 @@ function Navbar() {
   const [userMenuOpen, setUserMenuOpen] =
     useState(false);
 
-  // Read logged-in user from localStorage
+  // Read logged-in user from sessionStorage
   const user = (() => {
     try {
-      return JSON.parse(
-        localStorage.getItem("census_user") ||
-          localStorage.getItem("user") ||
-          "{}"
+      return (
+        JSON.parse(
+          sessionStorage.getItem("census_user") ||
+            sessionStorage.getItem("user") ||
+            "null"
+        ) || {}
       );
     } catch {
       return {};
     }
   })();
 
-  // Logout
+  // LOGOUT
   const logout = () => {
-    localStorage.removeItem("census_token");
-    localStorage.removeItem("census_user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    // Clear authentication data from current session
+    [
+      "census_token",
+      "census_user",
+      "token",
+      "user",
+    ].forEach((key) => {
+      sessionStorage.removeItem(key);
+      localStorage.removeItem(key);
+    });
 
+    // Close menus
+    setUserMenuOpen(false);
+    setCorrespondenceOpen(false);
+
+    // Redirect to Login without refreshing
     navigate("/login", { replace: true });
   };
 
@@ -44,7 +57,9 @@ function Navbar() {
   const formatRole = (role) => {
     if (role === "admin") return "Admin";
     if (role === "nodal_officer") return "Nodal Officer";
-    if (role === "incharge_officer") return "Incharge Officer";
+    if (role === "incharge_officer") {
+      return "Incharge Officer";
+    }
 
     return "User";
   };
@@ -78,10 +93,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       {/* BRAND */}
-      <div
-        className="navbar-brand"
-        aria-label="Census 2027"
-      >
+      <div className="navbar-brand" aria-label="Census 2027">
         <span className="brand-icon">🏛️</span>
         <span>Census 2027</span>
       </div>
@@ -94,9 +106,7 @@ function Navbar() {
             to="/"
             end
             className={({ isActive }) =>
-              isActive
-                ? "navbar-link active"
-                : "navbar-link"
+              isActive ? "navbar-link active" : "navbar-link"
             }
           >
             Home
@@ -109,9 +119,7 @@ function Navbar() {
           <NavLink
             to="/admin-units"
             className={({ isActive }) =>
-              isActive
-                ? "navbar-link active"
-                : "navbar-link"
+              isActive ? "navbar-link active" : "navbar-link"
             }
           >
             Administrative Units
@@ -131,8 +139,7 @@ function Navbar() {
               }
               aria-expanded={correspondenceOpen}
             >
-              Correspondence
-              <span className="arrow">▾</span>
+              Correspondence <span className="arrow">▾</span>
             </button>
 
             {correspondenceOpen && (
@@ -160,9 +167,7 @@ function Navbar() {
           <NavLink
             to="/training"
             className={({ isActive }) =>
-              isActive
-                ? "navbar-link active"
-                : "navbar-link"
+              isActive ? "navbar-link active" : "navbar-link"
             }
           >
             Training
@@ -174,9 +179,7 @@ function Navbar() {
           <NavLink
             to="/download"
             className={({ isActive }) =>
-              isActive
-                ? "navbar-link active"
-                : "navbar-link"
+              isActive ? "navbar-link active" : "navbar-link"
             }
           >
             Download
@@ -189,9 +192,7 @@ function Navbar() {
           <NavLink
             to="/contacts"
             className={({ isActive }) =>
-              isActive
-                ? "navbar-link active"
-                : "navbar-link"
+              isActive ? "navbar-link active" : "navbar-link"
             }
           >
             Contact Officers
@@ -203,9 +204,7 @@ function Navbar() {
           <NavLink
             to="/admin/users"
             className={({ isActive }) =>
-              isActive
-                ? "navbar-link active"
-                : "navbar-link"
+              isActive ? "navbar-link active" : "navbar-link"
             }
           >
             User Management
@@ -217,9 +216,7 @@ function Navbar() {
           <NavLink
             to="/admin/password-reset-requests"
             className={({ isActive }) =>
-              isActive
-                ? "navbar-link active"
-                : "navbar-link"
+              isActive ? "navbar-link active" : "navbar-link"
             }
           >
             Password Reset Requests
@@ -238,15 +235,12 @@ function Navbar() {
           aria-expanded={userMenuOpen}
         >
           <span className="user-icon">👤</span>
-
           <span>
             {user.full_name || user.username || "User"}
           </span>
-
           <span className="role-label">
             ({formatRole(user.role)})
           </span>
-
           <span>▾</span>
         </button>
 
@@ -256,7 +250,6 @@ function Navbar() {
               <strong>
                 {user.full_name || user.username || "User"}
               </strong>
-
               <span>{formatRole(user.role)}</span>
             </div>
 

@@ -49,12 +49,8 @@ function Login() {
 
       // IMPORTANT:
       // App.jsx uses these exact localStorage keys
-      localStorage.setItem("census_token", data.token);
-
-      localStorage.setItem(
-        "census_user",
-        JSON.stringify(data.user)
-      );
+     sessionStorage.setItem("census_token", data.token);
+sessionStorage.setItem("census_user", JSON.stringify(data.user));
 
       // Role comes from database/JWT
       // No role selection is required on Login page.
@@ -142,7 +138,7 @@ function Login() {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
-            
+
 
         </form>
 

@@ -85,14 +85,14 @@ export default function PasswordResetRequests() {
 
     if (action === "reset") {
       if (
-        newPassword.length < 12 ||
-        newPassword.length > 128 ||
+        newPassword.length < 6 ||
+        newPassword.length > 12 ||
         !/[a-z]/.test(newPassword) ||
         !/[A-Z]/.test(newPassword) ||
         !/[0-9]/.test(newPassword)
       ) {
         setError(
-          "Temporary password must be 12–128 characters and include uppercase, lowercase and a number."
+          "Temporary password must be 6–12 characters and include uppercase, lowercase and a number."
         );
         return;
       }
