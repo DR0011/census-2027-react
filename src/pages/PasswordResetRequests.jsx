@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PasswordResetRequests.css";
@@ -7,8 +6,8 @@ const API = "http://localhost:5000/api";
 
 function getToken() {
   return (
-    localStorage.getItem("census_token") ||
-    localStorage.getItem("token") ||
+    sessionStorage.getItem("census_token") ||
+    sessionStorage.getItem("token") ||
     ""
   );
 }
@@ -48,6 +47,13 @@ export default function PasswordResetRequests() {
       const data = await response.json();
 
       if (response.status === 401) {
+        sessionStorage.removeItem("census_token");
+        sessionStorage.removeItem("census_user");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("user");
+
+        navigate("/login", { replace: true });
+
         throw new Error(
           "Your session has expired. Please log in again."
         );
@@ -117,6 +123,13 @@ export default function PasswordResetRequests() {
     try {
       const token = getToken();
 
+      if (!token) {
+        navigate("/login", { replace: true });
+        throw new Error(
+          "Login token is not found. Please log in again."
+        );
+      }
+
       const response = await fetch(
         `${API}/password-reset/requests/${requestId}/${action}`,
         {
@@ -133,6 +146,19 @@ export default function PasswordResetRequests() {
       );
 
       const data = await response.json();
+
+      if (response.status === 401) {
+        sessionStorage.removeItem("census_token");
+        sessionStorage.removeItem("census_user");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("user");
+
+        navigate("/login", { replace: true });
+
+        throw new Error(
+          "Your session has expired. Please log in again."
+        );
+      }
 
       if (!response.ok) {
         throw new Error(
@@ -316,9 +342,7 @@ export default function PasswordResetRequests() {
                             "reset"
                           )
                         }
-                        disabled={
-                          processingId !== null
-                        }
+                        disabled={processingId !== null}
                       >
                         {processingId === request.request_id
                           ? "Processing..."
@@ -334,9 +358,7 @@ export default function PasswordResetRequests() {
                             "reject"
                           )
                         }
-                        disabled={
-                          processingId !== null
-                        }
+                        disabled={processingId !== null}
                       >
                         Reject
                       </button>

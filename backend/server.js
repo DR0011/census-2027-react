@@ -69,7 +69,15 @@ app.use(
   "/api/administrative-units",
   administrativeUnitsRoutes
 );
+const circularsRouter = require("./routes/circulars");
 
+app.use("/api/circulars", circularsRouter);
+
+const documentsRoutes = require("./routes/documents");
+app.use("/api/documents", documentsRoutes);
+const pdfUploadRoutes = require("./routes/pdfUpload.routes");
+
+app.use("/api/pdfs", pdfUploadRoutes);
 // ======================================================
 // PASSWORD RESET ROUTES
 // POST /api/password-reset/request
@@ -86,6 +94,12 @@ app.use(
   "/api/password-reset",
   passwordResetRoutes
 );
+
+const circularsDocumentsRoutes = require(
+  "./routes/circularsDocuments"
+);
+
+app.use("/api", circularsDocumentsRoutes);
 
 // ======================================================
 // 404 HANDLER

@@ -23,6 +23,8 @@ import Navbar from "./components/Navbar.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import PasswordResetRequests from "./pages/PasswordResetRequests.jsx";
 import ChangePassword from "./pages/ChangePassword.jsx";
+import CircularsDocuments from "./components/CircularsDocuments.jsx";
+import PdfUpload from "./components/PdfUpload";
 import "./App.css";
 
 const API = "http://localhost:5000/api";
@@ -36,6 +38,7 @@ const ROLE_PERMISSIONS = {
     "home",
     "administrative_units",
     "correspondence",
+    "circulars_documents",
     "training",
     "download",
     "contacts",
@@ -58,7 +61,6 @@ const ROLE_PERMISSIONS = {
    AUTH HELPERS
 ========================================= */
 
-
 function getLoggedInUser() {
   try {
     return JSON.parse(
@@ -77,7 +79,6 @@ function getAuthToken() {
     sessionStorage.getItem("token")
   );
 }
-
 
 function hasPermission(role, permission) {
   return Boolean(
@@ -254,8 +255,8 @@ function ChangePasswordPage() {
             type="password"
             autoComplete="current-password"
             value={currentPassword}
-            onChange={(e) =>
-              setCurrentPassword(e.target.value)
+            onChange={(event) =>
+              setCurrentPassword(event.target.value)
             }
             required
           />
@@ -270,8 +271,8 @@ function ChangePasswordPage() {
             autoComplete="new-password"
             minLength={8}
             value={newPassword}
-            onChange={(e) =>
-              setNewPassword(e.target.value)
+            onChange={(event) =>
+              setNewPassword(event.target.value)
             }
             required
           />
@@ -286,22 +287,18 @@ function ChangePasswordPage() {
             autoComplete="new-password"
             minLength={8}
             value={confirmPassword}
-            onChange={(e) =>
-              setConfirmPassword(e.target.value)
+            onChange={(event) =>
+              setConfirmPassword(event.target.value)
             }
             required
           />
 
           {error && (
-            <p className="password-error">
-              {error}
-            </p>
+            <p className="password-error">{error}</p>
           )}
 
           {message && (
-            <p className="password-success">
-              {message}
-            </p>
+            <p className="password-success">{message}</p>
           )}
 
           <button type="submit" disabled={loading}>
@@ -358,6 +355,16 @@ function AuthenticatedApp() {
             }
           />
 
+          {/* NEW: CIRCULARS & DOCUMENTS: ADMIN ONLY */}
+          <Route
+            path="/circulars-documents"
+            element={
+              <ProtectedRoute permission="circulars_documents">
+                <CircularsDocuments />
+              </ProtectedRoute>
+            }
+          />
+
           {/* CORRESPONDENCE */}
           <Route
             path="/correspondence"
@@ -404,6 +411,10 @@ function AuthenticatedApp() {
               </AdminOnly>
             }
           />
+          <Route
+  path="/pdf-upload"
+  element={<PdfUpload />}
+/>
 
           {/* TRAINING: ADMIN ONLY */}
           <Route
@@ -452,33 +463,29 @@ function AuthenticatedApp() {
           <Route
             path="/user-management"
             element={
-              <Navigate
-                to="/admin/users"
-                replace
-              />
+              <Navigate to="/admin/users" replace />
             }
           />
 
-          {/* CHANGE PASSWORD: AUTHENTICATED ROLES */}
-         <Route
-  path="/change-password"
-  element={
-    <ProtectedRoute permission="change_password">
-      <ChangePassword />
-    </ProtectedRoute>
-  }
-/>
-          
-{/* PASSWORD RESET REQUESTS: ADMIN ONLY */}
-<Route
-  path="/admin/password-reset-requests"
-  element={
-    <ProtectedRoute roles={["admin"]}>
-      <PasswordResetRequests />
-    </ProtectedRoute>
-  }
-/>
+          {/* CHANGE PASSWORD */}
+          <Route
+            path="/change-password"
+            element={
+              <ProtectedRoute permission="change_password">
+                <ChangePasswordPage />
+              </ProtectedRoute>
+            }
+          />
 
+          {/* PASSWORD RESET REQUESTS: ADMIN ONLY */}
+          <Route
+            path="/admin/password-reset-requests"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <PasswordResetRequests />
+              </ProtectedRoute>
+            }
+          />
 
           {/* UNKNOWN ROUTE */}
           <Route

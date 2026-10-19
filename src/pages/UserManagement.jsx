@@ -1,15 +1,15 @@
-
 import React, { useEffect, useState } from "react";
 import "./UserManagement.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const emptyForm = {
   username: "",
   full_name: "",
   email: "",
   password: "",
-  role: "Incharge_officer",
+  role: "incharge_officer",
 };
 
 function UserManagement() {
@@ -24,14 +24,14 @@ function UserManagement() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // IMPORTANT: Match the keys used in Login.jsx
-  const token = localStorage.getItem("census_token");
+  // Use the same sessionStorage keys as Login.jsx
+  const token = sessionStorage.getItem("census_token");
 
   let currentUser = {};
 
   try {
     currentUser = JSON.parse(
-      localStorage.getItem("census_user") || "{}"
+      sessionStorage.getItem("census_user") || "{}"
     );
   } catch {
     currentUser = {};
@@ -42,12 +42,15 @@ function UserManagement() {
   // ======================================================
 
   const apiRequest = async (url, options = {}) => {
-    const currentToken = localStorage.getItem("census_token");
+    const currentToken = sessionStorage.getItem("census_token");
 
     if (!currentToken) {
-      localStorage.removeItem("census_user");
-      window.location.href = "/login";
-      throw new Error("Please login again. Authentication token not found.");
+      sessionStorage.removeItem("census_user");
+      window.location.hash = "#/login";
+
+      throw new Error(
+        "Please login again. Authentication token not found."
+      );
     }
 
     const response = await fetch(url, {
@@ -64,10 +67,10 @@ function UserManagement() {
     const data = await response.json().catch(() => ({}));
 
     if (response.status === 401) {
-      localStorage.removeItem("census_token");
-      localStorage.removeItem("census_user");
+      sessionStorage.removeItem("census_token");
+      sessionStorage.removeItem("census_user");
 
-      window.location.href = "/login";
+      window.location.hash = "#/login";
 
       throw new Error(
         "Session expired or invalid. Please login again."
@@ -76,7 +79,8 @@ function UserManagement() {
 
     if (response.status === 403) {
       throw new Error(
-        data.message || "You do not have permission to perform this action."
+        data.message ||
+          "You do not have permission to perform this action."
       );
     }
 
@@ -100,7 +104,7 @@ function UserManagement() {
 
       const data = await apiRequest(`${API_URL}/api/users`);
 
-      setUsers(data.users || []);
+      setUsers(Array.isArray(data) ? data : data.users || []);
     } catch (err) {
       setError(err.message || "Unable to load users.");
     } finally {
@@ -109,7 +113,20 @@ function UserManagement() {
   };
 
   useEffect(() => {
+    if (!token || !currentUser.id) {
+      window.location.hash = "#/login";
+      return;
+    }
+
+    if (currentUser.role !== "admin") {
+      setLoading(false);
+      setError("Access denied. Only admin can manage users.");
+      return;
+    }
+
     loadUsers();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ======================================================
@@ -272,6 +289,7 @@ function UserManagement() {
     if (role === "admin") return "Admin";
     if (role === "nodal_officer") return "Nodal Officer";
     if (role === "incharge_officer") return "Incharge Officer";
+
     return role || "-";
   };
 
@@ -540,4 +558,3 @@ function UserManagement() {
 }
 
 export default UserManagement;
-

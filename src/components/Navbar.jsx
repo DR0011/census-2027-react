@@ -17,13 +17,15 @@ function Navbar() {
   const [userMenuOpen, setUserMenuOpen] =
     useState(false);
 
-  // Read logged-in user from sessionStorage
+  // Read logged-in user from sessionStorage/localStorage
   const user = (() => {
     try {
       return (
         JSON.parse(
           sessionStorage.getItem("census_user") ||
+            localStorage.getItem("census_user") ||
             sessionStorage.getItem("user") ||
+            localStorage.getItem("user") ||
             "null"
         ) || {}
       );
@@ -34,7 +36,6 @@ function Navbar() {
 
   // LOGOUT
   const logout = () => {
-    // Clear authentication data from current session
     [
       "census_token",
       "census_user",
@@ -45,11 +46,9 @@ function Navbar() {
       localStorage.removeItem(key);
     });
 
-    // Close menus
     setUserMenuOpen(false);
     setCorrespondenceOpen(false);
 
-    // Redirect to Login without refreshing
     navigate("/login", { replace: true });
   };
 
@@ -57,6 +56,7 @@ function Navbar() {
   const formatRole = (role) => {
     if (role === "admin") return "Admin";
     if (role === "nodal_officer") return "Nodal Officer";
+
     if (role === "incharge_officer") {
       return "Incharge Officer";
     }
@@ -90,10 +90,16 @@ function Navbar() {
     setUserMenuOpen(false);
   }, [location.pathname]);
 
+  const navLinkClass = ({ isActive }) =>
+    isActive ? "navbar-link active" : "navbar-link";
+
   return (
     <nav className="navbar">
       {/* BRAND */}
-      <div className="navbar-brand" aria-label="Census 2027">
+      <div
+        className="navbar-brand"
+        aria-label="Census 2027"
+      >
         <span className="brand-icon">🏛️</span>
         <span>Census 2027</span>
       </div>
@@ -102,13 +108,7 @@ function Navbar() {
       <div className="navbar-links">
         {/* HOME: ADMIN ONLY */}
         {user.role === "admin" && (
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              isActive ? "navbar-link active" : "navbar-link"
-            }
-          >
+          <NavLink to="/" end className={navLinkClass}>
             Home
           </NavLink>
         )}
@@ -118,11 +118,29 @@ function Navbar() {
           user.role === "nodal_officer") && (
           <NavLink
             to="/admin-units"
-            className={({ isActive }) =>
-              isActive ? "navbar-link active" : "navbar-link"
-            }
+            className={navLinkClass}
           >
             Administrative Units
+          </NavLink>
+        )}
+
+        {/* CIRCULARS & DOCUMENTS: ADMIN ONLY */}
+        {user.role === "admin" && (
+          <NavLink
+            to="/circulars-documents"
+            className={navLinkClass}
+          >
+            Circulars &amp; Documents
+          </NavLink>
+        )}
+
+        {/* PDF UPLOAD: ADMIN ONLY */}
+        {user.role === "admin" && (
+          <NavLink
+            to="/pdf-upload"
+            className={navLinkClass}
+          >
+            📄 PDF Upload
           </NavLink>
         )}
 
@@ -139,7 +157,8 @@ function Navbar() {
               }
               aria-expanded={correspondenceOpen}
             >
-              Correspondence <span className="arrow">▾</span>
+              Correspondence{" "}
+              <span className="arrow">▾</span>
             </button>
 
             {correspondenceOpen && (
@@ -166,9 +185,7 @@ function Navbar() {
         {user.role === "admin" && (
           <NavLink
             to="/training"
-            className={({ isActive }) =>
-              isActive ? "navbar-link active" : "navbar-link"
-            }
+            className={navLinkClass}
           >
             Training
           </NavLink>
@@ -178,9 +195,7 @@ function Navbar() {
         {user.role === "admin" && (
           <NavLink
             to="/download"
-            className={({ isActive }) =>
-              isActive ? "navbar-link active" : "navbar-link"
-            }
+            className={navLinkClass}
           >
             Download
           </NavLink>
@@ -191,9 +206,7 @@ function Navbar() {
           user.role === "incharge_officer") && (
           <NavLink
             to="/contacts"
-            className={({ isActive }) =>
-              isActive ? "navbar-link active" : "navbar-link"
-            }
+            className={navLinkClass}
           >
             Contact Officers
           </NavLink>
@@ -203,9 +216,7 @@ function Navbar() {
         {user.role === "admin" && (
           <NavLink
             to="/admin/users"
-            className={({ isActive }) =>
-              isActive ? "navbar-link active" : "navbar-link"
-            }
+            className={navLinkClass}
           >
             User Management
           </NavLink>
@@ -215,9 +226,7 @@ function Navbar() {
         {user.role === "admin" && (
           <NavLink
             to="/admin/password-reset-requests"
-            className={({ isActive }) =>
-              isActive ? "navbar-link active" : "navbar-link"
-            }
+            className={navLinkClass}
           >
             Password Reset Requests
           </NavLink>
@@ -235,12 +244,15 @@ function Navbar() {
           aria-expanded={userMenuOpen}
         >
           <span className="user-icon">👤</span>
+
           <span>
             {user.full_name || user.username || "User"}
           </span>
+
           <span className="role-label">
             ({formatRole(user.role)})
           </span>
+
           <span>▾</span>
         </button>
 
@@ -250,6 +262,7 @@ function Navbar() {
               <strong>
                 {user.full_name || user.username || "User"}
               </strong>
+
               <span>{formatRole(user.role)}</span>
             </div>
 

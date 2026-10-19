@@ -1,0 +1,636 @@
+
+/* ================================
+   Census 2027 - Circulars/Documents
+   ================================ */
+
+.cd-page {
+  width: 100%;
+  min-width: 0;
+  padding: 24px;
+  color: #243247;
+  background: #eef4fb;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.cd-page *,
+.cd-page *::before,
+.cd-page *::after {
+  box-sizing: border-box;
+}
+
+.cd-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.cd-page-header h1 {
+  margin: 0 0 8px;
+  color: #17365d;
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.cd-page-header p {
+  margin: 0;
+  color: #66758a;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Tabs */
+
+.cd-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #d5dfeb;
+}
+
+.cd-tab {
+  position: relative;
+  padding: 12px 22px;
+  border: 1px solid #d5dfeb;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: #e3ebf5;
+  color: #34445b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.cd-tab:hover {
+  background: #d6e3f2;
+}
+
+.cd-tab.active {
+  background: #17365d;
+  color: #fff;
+  border-color: #17365d;
+}
+
+/* Panels */
+
+.cd-panel {
+  min-width: 0;
+  margin-bottom: 24px;
+  padding: 22px;
+  border: 1px solid #dce5ef;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(23, 54, 93, 0.06);
+}
+
+.cd-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cd-panel-header h2 {
+  margin: 0;
+  color: #17365d;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.cd-editing-label {
+  display: inline-block;
+  padding: 7px 11px;
+  border-radius: 6px;
+  background: #fff3cd;
+  color: #795900;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Form */
+
+.cd-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.cd-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 7px;
+}
+
+.cd-field-full {
+  grid-column: 1 / -1;
+}
+
+.cd-field label {
+  color: #34445b;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.cd-required {
+  color: #c62828;
+}
+
+.cd-field input,
+.cd-field select,
+.cd-field textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #cbd6e2;
+  border-radius: 6px;
+  outline: none;
+  background: #fff;
+  color: #243247;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cd-field input,
+.cd-field select {
+  min-height: 42px;
+}
+
+.cd-field textarea {
+  min-height: 90px;
+  resize: vertical;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cd-field input:focus,
+.cd-field select:focus,
+.cd-field textarea:focus {
+  border-color: #2874bd;
+  box-shadow: 0 0 0 3px rgba(40, 116, 189, 0.12);
+}
+
+.cd-field input::placeholder,
+.cd-field textarea::placeholder {
+  color: #8996a8;
+}
+
+.cd-field input:disabled,
+.cd-field select:disabled,
+.cd-field textarea:disabled {
+  background: #f1f4f8;
+  cursor: not-allowed;
+}
+
+.cd-form-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+/* Buttons */
+
+.cd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.cd-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cd-btn-primary {
+  background: #17365d;
+  border-color: #17365d;
+  color: #fff;
+}
+
+.cd-btn-primary:hover:not(:disabled) {
+  background: #0f2847;
+  border-color: #0f2847;
+}
+
+.cd-btn-secondary {
+  background: #fff;
+  border-color: #cbd6e2;
+  color: #34445b;
+}
+
+.cd-btn-secondary:hover:not(:disabled) {
+  background: #edf3f9;
+}
+
+.cd-btn-edit {
+  min-height: 32px;
+  padding: 6px 10px;
+  background: #e7f1ff;
+  border-color: #c4dbfa;
+  color: #164e8a;
+}
+
+.cd-btn-edit:hover:not(:disabled) {
+  background: #d3e6ff;
+}
+
+.cd-btn-delete {
+  min-height: 32px;
+  padding: 6px 10px;
+  background: #fff0f0;
+  border-color: #f3c5c5;
+  color: #b42323;
+}
+
+.cd-btn-delete:hover:not(:disabled) {
+  background: #ffe0e0;
+}
+
+/* Alerts */
+
+.cd-alert {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 12px 15px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.cd-alert-error {
+  background: #fff0f0;
+  border-color: #f0c2c2;
+  color: #a61c1c;
+}
+
+.cd-alert-success {
+  background: #edf9f0;
+  border-color: #bce4c5;
+  color: #176b32;
+}
+
+.cd-alert button {
+  flex: 0 0 auto;
+  padding: 0 3px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 23px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Table heading and search */
+
+.cd-records-panel {
+  overflow: hidden;
+}
+
+.cd-records-heading {
+  align-items: center;
+}
+
+.cd-record-count {
+  margin: 6px 0 0;
+  color: #68778b;
+  font-size: 13px;
+}
+
+.cd-search {
+  width: min(100%, 330px);
+}
+
+.cd-search input {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 13px;
+  border: 1px solid #cbd6e2;
+  border-radius: 6px;
+  outline: none;
+  background: #fff;
+  color: #243247;
+  font-size: 14px;
+}
+
+.cd-search input:focus {
+  border-color: #2874bd;
+  box-shadow: 0 0 0 3px rgba(40, 116, 189, 0.12);
+}
+
+/* Table: keep as a table on phones and tablets */
+
+.cd-table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 650px;
+  border: 1px solid #d8e2ed;
+  border-radius: 7px;
+  background: #fff;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cd-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  font-size: 13px;
+}
+
+.cd-table th,
+.cd-table td {
+  padding: 11px 12px;
+  border-right: 1px solid #e1e8f0;
+  border-bottom: 1px solid #e1e8f0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.cd-table th:last-child,
+.cd-table td:last-child {
+  border-right: none;
+}
+
+.cd-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #17365d;
+  color: #fff;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 1px 0 #17365d;
+}
+
+.cd-table tbody tr:nth-child(even) {
+  background: #f7faff;
+}
+
+.cd-table tbody tr:hover {
+  background: #edf4fc;
+}
+
+.cd-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.cd-table td {
+  color: #34445b;
+  line-height: 1.6;
+}
+
+.cd-table td:first-child {
+  white-space: nowrap;
+}
+
+.cd-description {
+  min-width: 220px;
+  max-width: 420px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* PDF link button */
+
+.cd-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border: 1px solid #bfd7f5;
+  border-radius: 5px;
+  background: #eaf3ff;
+  color: #164e8a;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cd-link-btn:hover {
+  background: #d6e8ff;
+  border-color: #8db8ed;
+}
+
+.cd-empty {
+  padding: 28px 16px !important;
+  color: #738196 !important;
+  text-align: center !important;
+}
+
+.cd-actions {
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+.cd-actions .cd-btn {
+  margin: 0 4px 4px 0;
+}
+
+.cd-id-warning {
+  display: block;
+  margin-top: 3px;
+  color: #b42323;
+  font-size: 11px;
+}
+
+.cd-loading {
+  padding: 30px 15px;
+  color: #53657a;
+  text-align: center;
+  font-size: 14px;
+}
+
+.cd-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Tablet */
+
+@media (max-width: 992px) {
+  .cd-page {
+    padding: 18px;
+  }
+
+  .cd-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cd-panel {
+    padding: 18px;
+  }
+
+  .cd-table {
+    font-size: 12px;
+  }
+
+  .cd-table th,
+  .cd-table td {
+    padding: 10px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 576px) {
+  .cd-page {
+    padding: 12px;
+  }
+
+  .cd-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cd-page-header h1 {
+    font-size: 22px;
+  }
+
+  .cd-page-header > .cd-btn {
+    align-self: flex-start;
+  }
+
+  .cd-tabs {
+    gap: 5px;
+  }
+
+  .cd-tab {
+    flex: 1;
+    padding: 11px 12px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .cd-panel {
+    padding: 14px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+  }
+
+  .cd-panel-header h2 {
+    font-size: 18px;
+  }
+
+  .cd-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .cd-field-full {
+    grid-column: auto;
+  }
+
+  .cd-form-actions {
+    align-items: stretch;
+  }
+
+  .cd-form-actions .cd-btn {
+    flex: 1;
+  }
+
+  .cd-records-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cd-search {
+    width: 100%;
+  }
+
+  .cd-table-wrapper {
+    max-height: 500px;
+  }
+
+  .cd-table {
+    min-width: 950px;
+  }
+
+  .cd-table th,
+  .cd-table td {
+    padding: 9px 10px;
+  }
+
+  .cd-description {
+    min-width: 200px;
+    max-width: 280px;
+  }
+
+  .cd-alert {
+    font-size: 13px;
+  }
+}
+
+.cd-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.cd-toolbar h2 {
+  margin: 0;
+  color: #17365d;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+@media (max-width: 576px) {
+  .cd-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cd-toolbar .cd-btn {
+    width: 100%;
+  }
+}
