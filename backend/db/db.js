@@ -13,7 +13,7 @@ const pool = mysql.createPool({
 
   ssl: {
     ca: fs.readFileSync(
-      path.join(__dirname, "../certs/ca(2).pem"),
+      path.join(__dirname, "../certs/ca.pem"),
       "utf8"
     ),
     rejectUnauthorized: true,
