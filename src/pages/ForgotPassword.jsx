@@ -2,8 +2,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "./ForgotPassword.css";
-
-const API_URL = "http://localhost:5000";
+const API_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+).replace(/\/+$/, "").replace(/\/api$/, "");
 
 export default function ForgotPassword() {
   const [username, setUsername] = useState("");

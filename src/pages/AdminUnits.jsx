@@ -3,8 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import "./AdminUnits.css";
 
-const API_URL = "http://localhost:5000/api/administrative-units";
-
+const API_URL = `${
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+}/administrative-units`;
 const ROW_H = 40;
 const VIEW_H = 600;
 const OVERSCAN = 10;
