@@ -1,16 +1,15 @@
-
 require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
 const compression = require("compression");
+const pool = require("./db/db");
 
 const app = express();
-
 const PORT = process.env.PORT || 5000;
 
 // ======================================================
-// CORS
+// MIDDLEWARE
 // ======================================================
 
 app.use(
@@ -22,12 +21,6 @@ app.use(
     credentials: true,
   })
 );
-
-app.use(express.json());
-
-// ======================================================
-// MIDDLEWARE
-// ======================================================
 
 app.use(compression());
 app.use(express.json());
@@ -45,65 +38,35 @@ app.get("/", (req, res) => {
 });
 
 // ======================================================
-// AUTH ROUTES
-// POST /api/auth/login
+// TEMPORARY DB TEST (test pachi delete karo)
 // ======================================================
 
-const authRoutes = require("./routes/auth");
-
-app.use("/api/auth", authRoutes);
-
-// ======================================================
-// USER MANAGEMENT ROUTES
-// ======================================================
-
-const userRoutes = require("./routes/users");
-
-app.use("/api/users", userRoutes);
+app.get("/api/db-test", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT 1 AS ok");
+    res.json({ connected: true, rows });
+  } catch (err) {
+    res.status(500).json({ connected: false, error: err.message });
+  }
+});
 
 // ======================================================
-// ADMINISTRATIVE UNITS ROUTES
+// ROUTES
 // ======================================================
 
-const administrativeUnitsRoutes = require(
-  "./routes/administrativeUnits"
-);
-
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/users", require("./routes/users"));
 app.use(
   "/api/administrative-units",
-  administrativeUnitsRoutes
+  require("./routes/administrativeUnits")
 );
-const circularsRouter = require("./routes/circulars");
+app.use("/api/circulars", require("./routes/circulars"));
+app.use("/api/documents", require("./routes/documents"));
+app.use("/api/pdfs", require("./routes/pdfUpload.routes"));
+app.use("/api/password-reset", require("./routes/passwordReset"));
 
-app.use("/api/circulars", circularsRouter);
-
-const documentsRoutes = require("./routes/documents");
-app.use("/api/documents", documentsRoutes);
-const pdfUploadRoutes = require("./routes/pdfUpload.routes");
-
-app.use("/api/pdfs", pdfUploadRoutes);
-// ======================================================
-// PASSWORD RESET ROUTES
-// POST /api/password-reset/request
-// GET  /api/password-reset/requests
-// POST /api/password-reset/requests/:id/reset
-// POST /api/password-reset/requests/:id/reject
-// ======================================================
-
-const passwordResetRoutes = require(
-  "./routes/passwordReset"
-);
-
-app.use(
-  "/api/password-reset",
-  passwordResetRoutes
-);
-
-const circularsDocumentsRoutes = require(
-  "./routes/circularsDocuments"
-);
-
-app.use("/api", circularsDocumentsRoutes);
+// Generic /:section router (sauthi chhelle)
+app.use("/api", require("./routes/circularsDocuments"));
 
 // ======================================================
 // 404 HANDLER
