@@ -1,27 +1,37 @@
-/* Append this to CircularsDocuments.css (modal + responsive) */
+/* ===== Modal (replace the previously appended modal CSS with this) =====
+   The modal is rendered in document.body (portal), so everything is
+   scoped to .cd-modal-overlay and does not depend on .cd-page.        */
 
 .cd-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(15, 33, 58, 0.6);
+  color: #243247;
+  font-family: Arial, Helvetica, sans-serif;
   animation: cd-fade 0.15s ease-out;
+}
+
+.cd-modal-overlay *,
+.cd-modal-overlay *::before,
+.cd-modal-overlay *::after {
+  box-sizing: border-box;
 }
 
 .cd-modal {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 860px;
+  max-width: 880px;
   max-height: calc(100vh - 32px);
   max-height: calc(100dvh - 32px);
+  border-radius: 10px;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 24px 60px rgba(15, 33, 58, 0.35);
   overflow: hidden;
   animation: cd-pop 0.18s ease-out;
 }
@@ -33,33 +43,58 @@
   gap: 12px;
   flex-shrink: 0;
   padding: 14px 20px;
-  border-bottom: 1px solid #e5e7eb;
+  background: #17365d;
+  color: #fff;
 }
 
 .cd-modal-header h2 {
   margin: 0;
-  font-size: 1.15rem;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .cd-modal-close {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
   border: 0;
-  padding: 0 6px;
+  border-radius: 6px;
   background: transparent;
-  color: #475569;
-  font-size: 28px;
+  color: #fff;
+  font-size: 26px;
   line-height: 1;
   cursor: pointer;
 }
 
-.cd-modal-close:hover:not(:disabled) { color: #dc2626; }
-.cd-modal-close:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.cd-modal-close:hover:not(:disabled) { background: rgba(255, 255, 255, 0.15); }
+.cd-modal-close:disabled { opacity: 0.5; cursor: not-allowed; }
+.cd-modal-close:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
 
 .cd-modal-body {
-  padding: 20px;
+  padding: 22px;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
+
+.cd-modal .cd-form-actions {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #e1e8f0;
+}
+
+/* file field extras */
+.cd-modal .cd-field input[type="file"] {
+  padding: 8px 10px;
+  background: #f7faff;
+}
+
+.cd-modal .cd-link-btn { align-self: flex-start; }
+.cd-modal small { color: #68778b; font-size: 12px; }
+.cd-modal .cd-muted { color: #738196; font-size: 12px; }
 
 @keyframes cd-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes cd-pop {
@@ -72,17 +107,36 @@
   .cd-modal { animation: none; }
 }
 
-@media (max-width: 768px) {
+/* Tablet: 2 columns (same as your page) */
+@media (max-width: 992px) {
+  .cd-modal .cd-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Mobile: bottom sheet, 1 column */
+@media (max-width: 576px) {
   .cd-modal-overlay { padding: 0; align-items: flex-end; }
 
   .cd-modal {
     max-width: 100%;
+    max-height: 94vh;
     max-height: 94dvh;
     border-radius: 14px 14px 0 0;
   }
 
+  .cd-modal-header { padding: 12px 14px; }
+  .cd-modal-header h2 { font-size: 16px; }
   .cd-modal-body { padding: 14px; }
-  .cd-modal .cd-form-grid { grid-template-columns: 1fr; }
-  .cd-modal .cd-form-actions { flex-direction: column-reverse; }
+
+  .cd-modal .cd-form-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .cd-modal .cd-field-full { grid-column: auto; }
+
+  .cd-modal .cd-form-actions {
+    position: sticky;
+    bottom: 0;
+    flex-direction: column-reverse;
+    margin-top: 16px;
+    background: #fff;
+  }
+
   .cd-modal .cd-form-actions .cd-btn { width: 100%; }
 }
