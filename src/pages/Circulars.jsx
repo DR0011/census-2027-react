@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./Circulars.css";
 
@@ -78,10 +77,16 @@ function getGoogleDriveFileId(url) {
   return "";
 }
 
-function resolvePdfUrl(url) {
-  if (!url) return "";
+/**
+ * View URL:
+ * - Google Drive link  -> Drive preview page
+ * - Other http(s) link -> same link
+ * - Filename / local   -> backend inline route
+ */
+function getViewUrl(link, id, lang) {
+  if (!link) return "";
 
-  const text = String(url).trim();
+  const text = String(link).trim();
 
   if (/^https?:\/\//i.test(text)) {
     const fileId = getGoogleDriveFileId(text);
@@ -93,40 +98,21 @@ function resolvePdfUrl(url) {
     return text;
   }
 
-  const origin = API_BASE.replace(/\/api\/?$/, "");
-
-  if (text.startsWith("/api/")) {
-    return `${origin}${text}`;
-  }
-
-  if (text.startsWith("/circulars/")) {
-    return `${origin}/api${text}`;
-  }
-
-  if (text.startsWith("/")) {
-    return `${origin}${text}`;
-  }
-
-  // A filename without a path: assumes this backend route.
-  return `${API_BASE}/circulars/pdf/${encodeURIComponent(text)}`;
+  return `${API_URL}/view/${id}/${lang}`;
 }
 
-function getDownloadUrl(url) {
-  const viewUrl = resolvePdfUrl(url);
-
-  if (!viewUrl) return "";
-
-  // For local backend files, request download mode.
-  if (viewUrl.startsWith(`${API_BASE}/circulars/pdf/`)) {
-    return `${viewUrl}${viewUrl.includes("?") ? "&" : "?"}download=1`;
-  }
-
-  return viewUrl;
+/**
+ * Download URL: always goes through the backend, which sends
+ * Content-Disposition: attachment, so the browser downloads the file.
+ */
+function getDownloadUrl(link, id, lang) {
+  if (!link || id === null || id === undefined) return "";
+  return `${API_URL}/download/${id}/${lang}`;
 }
 
-function PdfButtons({ url }) {
-  const viewUrl = resolvePdfUrl(url);
-  const downloadUrl = getDownloadUrl(url);
+function PdfButtons({ url, id, lang }) {
+  const viewUrl = getViewUrl(url, id, lang);
+  const downloadUrl = getDownloadUrl(url, id, lang);
 
   if (!viewUrl) {
     return <span className="pdf-not-available">PDF not available</span>;
@@ -143,15 +129,11 @@ function PdfButtons({ url }) {
         View PDF
       </a>
 
-      <a
-        href={downloadUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="pdf-btn"
-        download
-      >
-        Download PDF
-      </a>
+      {downloadUrl && (
+        <a href={downloadUrl} className="pdf-btn" download>
+          Download PDF
+        </a>
+      )}
     </div>
   );
 }
@@ -816,7 +798,11 @@ export default function Circulars() {
                             {row.descriptionEn}
                           </div>
 
-                          <PdfButtons url={row.englishPdf} />
+                          <PdfButtons
+                            url={row.englishPdf}
+                            id={row.id}
+                            lang="en"
+                          />
                         </div>
                       )}
 
@@ -826,7 +812,11 @@ export default function Circulars() {
                             {row.descriptionHi}
                           </div>
 
-                          <PdfButtons url={row.hindiPdf} />
+                          <PdfButtons
+                            url={row.hindiPdf}
+                            id={row.id}
+                            lang="hi"
+                          />
                         </div>
                       )}
 
@@ -834,7 +824,11 @@ export default function Circulars() {
                         !row.descriptionHi &&
                         (row.englishPdf || row.hindiPdf) && (
                           <div className="description-language-block">
-                            <PdfButtons url={row.englishPdf || row.hindiPdf} />
+                            <PdfButtons
+                              url={row.englishPdf || row.hindiPdf}
+                              id={row.id}
+                              lang={row.englishPdf ? "en" : "hi"}
+                            />
                           </div>
                         )}
                     </td>
