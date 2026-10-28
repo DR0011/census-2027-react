@@ -2,15 +2,50 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PasswordResetRequests.css";
 
-const API_URL = (
+const ROOT = (
   import.meta.env.VITE_API_URL || "http://localhost:5000/api"
-).replace(/\/+$/, "").replace(/\/api$/, "");
+)
+  .replace(/\/+$/, "")
+  .replace(/\/api$/, "");
+
+const API = `${ROOT}/api`;
+
+const TOKEN_KEYS = ["census_token", "token"];
+const SESSION_KEYS = ["census_token", "census_user", "token", "user"];
 
 function getToken() {
+  for (const store of [sessionStorage, localStorage]) {
+    for (const key of TOKEN_KEYS) {
+      const value = store.getItem(key);
+      if (value) return value;
+    }
+  }
+  return "";
+}
+
+function clearSession() {
+  for (const store of [sessionStorage, localStorage]) {
+    SESSION_KEYS.forEach((key) => store.removeItem(key));
+  }
+}
+
+async function readJson(response) {
+  const text = await response.text();
+
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { message: text };
+  }
+}
+
+function isValidPassword(value) {
   return (
-    sessionStorage.getItem("census_token") ||
-    sessionStorage.getItem("token") ||
-    ""
+    value.length >= 6 &&
+    value.length <= 12 &&
+    /[a-z]/.test(value) &&
+    /[A-Z]/.test(value) &&
+    /[0-9]/.test(value)
   );
 }
 
@@ -25,6 +60,13 @@ export default function PasswordResetRequests() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+  const goToLogin = useCallback(() => {
+    clearSession();
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
+  /* ---------- load requests ---------- */
+
   const loadRequests = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -33,57 +75,58 @@ export default function PasswordResetRequests() {
       const token = getToken();
 
       if (!token) {
-        navigate("/login", { replace: true });
+        goToLogin();
         return;
       }
 
-      const response = await fetch(
-        `${API}/password-reset/requests`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${API}/password-reset/requests`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      const data = await response.json();
+      const data = await readJson(response);
 
       if (response.status === 401) {
-        sessionStorage.removeItem("census_token");
-        sessionStorage.removeItem("census_user");
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("user");
-
-        navigate("/login", { replace: true });
-
-        throw new Error(
-          "Your session has expired. Please log in again."
-        );
+        goToLogin();
+        throw new Error("Your session has expired. Please log in again.");
       }
 
       if (response.status === 403) {
-        throw new Error(
-          "Only an administrator can view reset requests."
-        );
+        throw new Error("Only an administrator can view reset requests.");
       }
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Unable to load requests."
+          data.message || `Unable to load requests (${response.status}).`
         );
       }
 
-      setRequests(data.requests || []);
+      setRequests(Array.isArray(data.requests) ? data.requests : []);
     } catch (err) {
       setError(err.message || "Unable to load requests.");
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, [goToLogin]);
 
   useEffect(() => {
     loadRequests();
   }, [loadRequests]);
+
+  /* ---------- reset / reject ---------- */
+
+  const clearRowState = (requestId) => {
+    setPasswords((previous) => {
+      const updated = { ...previous };
+      delete updated[requestId];
+      return updated;
+    });
+
+    setVisiblePasswords((previous) => {
+      const updated = { ...previous };
+      delete updated[requestId];
+      return updated;
+    });
+  };
 
   async function processRequest(requestId, action) {
     setError("");
@@ -92,32 +135,27 @@ export default function PasswordResetRequests() {
     const newPassword = passwords[requestId] || "";
 
     if (action === "reset") {
-      if (
-        newPassword.length < 6 ||
-        newPassword.length > 12 ||
-        !/[a-z]/.test(newPassword) ||
-        !/[A-Z]/.test(newPassword) ||
-        !/[0-9]/.test(newPassword)
-      ) {
+      if (!isValidPassword(newPassword)) {
         setError(
           "Temporary password must be 6–12 characters and include uppercase, lowercase and a number."
         );
         return;
       }
 
-      const confirmed = window.confirm(
-        "Reset this user's password? Verify the user's identity first."
-      );
-
-      if (!confirmed) return;
+      if (
+        !window.confirm(
+          "Reset this user's password? Verify the user's identity first."
+        )
+      ) {
+        return;
+      }
     }
 
-    if (action === "reject") {
-      const confirmed = window.confirm(
-        "Are you sure you want to reject this request?"
-      );
-
-      if (!confirmed) return;
+    if (
+      action === "reject" &&
+      !window.confirm("Are you sure you want to reject this request?")
+    ) {
+      return;
     }
 
     setProcessingId(requestId);
@@ -126,10 +164,8 @@ export default function PasswordResetRequests() {
       const token = getToken();
 
       if (!token) {
-        navigate("/login", { replace: true });
-        throw new Error(
-          "Login token is not found. Please log in again."
-        );
+        goToLogin();
+        throw new Error("Login token is not found. Please log in again.");
       }
 
       const response = await fetch(
@@ -140,31 +176,26 @@ export default function PasswordResetRequests() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body:
-            action === "reset"
-              ? JSON.stringify({ newPassword })
-              : JSON.stringify({}),
+          body: JSON.stringify(
+            action === "reset" ? { newPassword } : {}
+          ),
         }
       );
 
-      const data = await response.json();
+      const data = await readJson(response);
 
       if (response.status === 401) {
-        sessionStorage.removeItem("census_token");
-        sessionStorage.removeItem("census_user");
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("user");
+        goToLogin();
+        throw new Error("Your session has expired. Please log in again.");
+      }
 
-        navigate("/login", { replace: true });
-
-        throw new Error(
-          "Your session has expired. Please log in again."
-        );
+      if (response.status === 403) {
+        throw new Error("Only an administrator can process requests.");
       }
 
       if (!response.ok) {
         throw new Error(
-          data.message || "Unable to process request."
+          data.message || `Unable to process request (${response.status}).`
         );
       }
 
@@ -175,27 +206,25 @@ export default function PasswordResetRequests() {
             : "Request rejected.")
       );
 
-      setPasswords((previous) => {
-        const updated = { ...previous };
-        delete updated[requestId];
-        return updated;
-      });
-
-      setVisiblePasswords((previous) => {
-        const updated = { ...previous };
-        delete updated[requestId];
-        return updated;
-      });
-
+      clearRowState(requestId);
       await loadRequests();
     } catch (err) {
-      setError(
-        err.message || "Unable to process request."
-      );
+      setError(err.message || "Unable to process request.");
     } finally {
       setProcessingId(null);
     }
   }
+
+  const togglePasswordVisibility = (requestId) =>
+    setVisiblePasswords((previous) => ({
+      ...previous,
+      [requestId]: !previous[requestId],
+    }));
+
+  const changePassword = (requestId, value) =>
+    setPasswords((previous) => ({ ...previous, [requestId]: value }));
+
+  /* ---------- render ---------- */
 
   return (
     <div className="reset-requests-page">
@@ -203,8 +232,8 @@ export default function PasswordResetRequests() {
         <div>
           <h2>Password Reset Requests</h2>
           <p>
-            Review user requests and reset passwords after
-            verifying the user's identity.
+            Review user requests and reset passwords after verifying the
+            user's identity.
           </p>
         </div>
 
@@ -229,13 +258,13 @@ export default function PasswordResetRequests() {
       </div>
 
       {error && (
-        <div className="reset-alert reset-alert-error">
+        <div className="reset-alert reset-alert-error" role="alert">
           {error}
         </div>
       )}
 
       {message && (
-        <div className="reset-alert reset-alert-success">
+        <div className="reset-alert reset-alert-success" role="status">
           {message}
         </div>
       )}
@@ -251,9 +280,7 @@ export default function PasswordResetRequests() {
       ) : requests.length === 0 ? (
         <div className="reset-empty-state">
           <h3>No pending requests</h3>
-          <p>
-            New password reset requests will appear here.
-          </p>
+          <p>New password reset requests will appear here.</p>
         </div>
       ) : (
         <div className="reset-table-wrapper">
@@ -272,110 +299,84 @@ export default function PasswordResetRequests() {
             </thead>
 
             <tbody>
-              {requests.map((request, index) => (
-                <tr key={request.request_id}>
-                  <td>{index + 1}</td>
-                  <td>{request.username}</td>
-                  <td>{request.full_name || "-"}</td>
-                  <td>{request.email}</td>
-                  <td>{request.role}</td>
-                  <td>
-                    {request.requested_at
-                      ? new Date(
-                          request.requested_at
-                        ).toLocaleString()
-                      : "-"}
-                  </td>
-                  <td>
-                    <div className="reset-password-input">
-                      <input
-                        type={
-                          visiblePasswords[request.request_id]
-                            ? "text"
-                            : "password"
-                        }
-                        autoComplete="new-password"
-                        placeholder="Set temporary password"
-                        value={
-                          passwords[request.request_id] || ""
-                        }
-                        onChange={(event) =>
-                          setPasswords((previous) => ({
-                            ...previous,
-                            [request.request_id]:
-                              event.target.value,
-                          }))
-                        }
-                        disabled={
-                          processingId === request.request_id
-                        }
-                      />
+              {requests.map((request, index) => {
+                const id = request.request_id;
+                const busy = processingId === id;
 
-                      <button
-                        type="button"
-                        className="reset-show-password"
-                        onClick={() =>
-                          setVisiblePasswords((previous) => ({
-                            ...previous,
-                            [request.request_id]:
-                              !previous[request.request_id],
-                          }))
-                        }
-                        aria-label={
-                          visiblePasswords[request.request_id]
-                            ? "Hide password"
-                            : "Show password"
-                        }
-                      >
-                        {visiblePasswords[request.request_id]
-                          ? "Hide"
-                          : "Show"}
-                      </button>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="reset-action-buttons">
-                      <button
-                        type="button"
-                        className="reset-action-button"
-                        onClick={() =>
-                          processRequest(
-                            request.request_id,
-                            "reset"
-                          )
-                        }
-                        disabled={processingId !== null}
-                      >
-                        {processingId === request.request_id
-                          ? "Processing..."
-                          : "Reset Password"}
-                      </button>
+                return (
+                  <tr key={id}>
+                    <td>{index + 1}</td>
+                    <td>{request.username}</td>
+                    <td>{request.full_name || "-"}</td>
+                    <td>{request.email || "-"}</td>
+                    <td>{request.role || "-"}</td>
+                    <td>
+                      {request.requested_at
+                        ? new Date(request.requested_at).toLocaleString()
+                        : "-"}
+                    </td>
 
-                      <button
-                        type="button"
-                        className="reject-action-button"
-                        onClick={() =>
-                          processRequest(
-                            request.request_id,
-                            "reject"
-                          )
-                        }
-                        disabled={processingId !== null}
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    <td>
+                      <div className="reset-password-input">
+                        <input
+                          type={visiblePasswords[id] ? "text" : "password"}
+                          autoComplete="new-password"
+                          placeholder="Set temporary password"
+                          maxLength={12}
+                          value={passwords[id] || ""}
+                          onChange={(event) =>
+                            changePassword(id, event.target.value)
+                          }
+                          disabled={busy}
+                        />
+
+                        <button
+                          type="button"
+                          className="reset-show-password"
+                          onClick={() => togglePasswordVisibility(id)}
+                          aria-label={
+                            visiblePasswords[id]
+                              ? "Hide password"
+                              : "Show password"
+                          }
+                        >
+                          {visiblePasswords[id] ? "Hide" : "Show"}
+                        </button>
+                      </div>
+                    </td>
+
+                    <td>
+                      <div className="reset-action-buttons">
+                        <button
+                          type="button"
+                          className="reset-action-button"
+                          onClick={() => processRequest(id, "reset")}
+                          disabled={processingId !== null}
+                        >
+                          {busy ? "Processing..." : "Reset Password"}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="reject-action-button"
+                          onClick={() => processRequest(id, "reject")}
+                          disabled={processingId !== null}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
 
       <p className="reset-security-note">
-        Verify the user's identity before resetting a password.
-        Share the temporary password only through a secure channel.
+        Verify the user's identity before resetting a password. Share the
+        temporary password only through a secure channel.
       </p>
     </div>
   );
