@@ -96,13 +96,26 @@ function Navbar() {
   return (
     <nav className="navbar">
       {/* BRAND */}
+    
+      {/* BRAND: CLICK TO OPEN HOME PAGE */}
       <div
         className="navbar-brand"
-        aria-label="Census 2027"
+        onClick={() => navigate("/")}
+        role="button"
+        tabIndex={0}
+        aria-label="Census 2027 Home"
+        style={{ cursor: "pointer" }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            navigate("/");
+          }
+        }}
       >
         <span className="brand-icon">🏛️</span>
         <span>Census 2027</span>
       </div>
+
 
       {/* NAVIGATION LINKS */}
       <div className="navbar-links">
