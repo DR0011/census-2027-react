@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import "./CircularsDocuments.css";
 
 /* ------------------------------------------------------------------ */
@@ -578,7 +579,7 @@ const RecordModal = memo(function RecordModal({
     ? `Edit Record (ID: ${editingId})`
     : `Add ${config.singular}`;
 
-  return (
+  return createPortal(
     <div
       className="cd-modal-overlay"
       onMouseDown={(event) => {
@@ -672,7 +673,8 @@ const RecordModal = memo(function RecordModal({
           </form>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 });
 
