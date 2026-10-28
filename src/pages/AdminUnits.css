@@ -1,4 +1,3 @@
-
 * {
   box-sizing: border-box;
 }
@@ -139,7 +138,7 @@
   white-space: normal;
 }
 
-/* Selected name */
+/* Placeholder name ("Select District") */
 .count-box .count-box-name {
   display: block;
   width: 100%;
@@ -167,6 +166,35 @@
 
 .count-box.active-box .count-box-name,
 .count-box.active-box strong {
+  color: var(--white);
+}
+
+/* Selected item: big, centered name, no count number */
+
+.count-box.has-selection {
+  align-items: center;
+  text-align: center;
+}
+
+.count-box.has-selection .count-box-label {
+  text-align: center;
+}
+
+.count-box .count-box-selected {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  color: var(--navy);
+  font-size: clamp(18px, 1.8vw, 26px);
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.count-box.active-box .count-box-selected {
   color: var(--white);
 }
 
@@ -476,6 +504,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .count-box .count-box-selected {
+    font-size: 20px;
+  }
+
   .admin-header h1 {
     font-size: 25px;
   }
@@ -523,6 +555,10 @@
 
   .count-box .count-box-name {
     font-size: 14px;
+  }
+
+  .count-box .count-box-selected {
+    font-size: 19px;
   }
 
   .count-box strong {
@@ -589,6 +625,10 @@
 
   .count-box .count-box-name {
     font-size: 13px;
+  }
+
+  .count-box .count-box-selected {
+    font-size: 17px;
   }
 
   .count-box strong {
@@ -698,6 +738,10 @@
 
   .count-box .count-box-name {
     font-size: 12px;
+  }
+
+  .count-box .count-box-selected {
+    font-size: 15px;
   }
 
   .count-box strong {

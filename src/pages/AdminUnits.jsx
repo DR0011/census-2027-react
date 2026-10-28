@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import "./AdminUnits.css";
@@ -125,9 +124,6 @@ const getVillageTownCode = (row) =>
 const getVillageTownName = (row) =>
   clean(row?.vtname2027 ?? row?.name);
 
-const getVillageTownType = (row) =>
-  clean(row?.vtru2027 ?? row?.type);
-
 /* ================= WARD ================= */
 
 const getWardName = (row) =>
@@ -141,6 +137,56 @@ const getWardCode = (row) =>
       row?.wardsh2027 ??
       row?.wardcode2027
   );
+
+/* ================= TABLE COLUMNS ================= */
+
+const COLUMNS = {
+  state: [
+    ["code", "State Code"],
+    ["name", "State / UT Name"],
+  ],
+  district: [
+    ["stateCode", "State Code"],
+    ["stateName", "State / UT Name"],
+    ["code", "District Code"],
+    ["name", "District Name"],
+  ],
+  subdistrict: [
+    ["stateCode", "State Code"],
+    ["stateName", "State / UT Name"],
+    ["districtCode", "District Code"],
+    ["districtName", "District Name"],
+    ["code", "Sub-District Code"],
+    ["name", "Sub-District Name"],
+  ],
+  villageTown: [
+    ["stateCode", "State Code"],
+    ["stateName", "State / UT Name"],
+    ["districtCode", "District Code"],
+    ["districtName", "District Name"],
+    ["subDistrictCode", "Sub-District Code"],
+    ["subDistrictName", "Sub-District Name"],
+    ["code", "Village / Town Code"],
+    ["name", "Village / Town Name"],
+    ["type", "Type"],
+    ["wardCode", "Ward Code"],
+    ["wardName", "Ward Name"],
+  ],
+  ward: [
+    ["stateCode", "State Code"],
+    ["stateName", "State / UT Name"],
+    ["districtCode", "District Code"],
+    ["districtName", "District Name"],
+    ["subDistrictCode", "Sub-District Code"],
+    ["subDistrictName", "Sub-District Name"],
+    ["villageTownCode", "Village / Town Code"],
+    ["villageTownName", "Village / Town Name"],
+    ["code", "Ward Code"],
+    ["name", "Ward Name"],
+  ],
+};
+
+const SORTABLE_KEYS = ["code", "name", "type"];
 
 /* ================= COMPONENT ================= */
 
@@ -1056,6 +1102,7 @@ export default function AdminUnits() {
       key: "state",
       label: "State / UT",
       name: selectedState?.name || "Select State / UT",
+      selected: Boolean(selectedState),
       count: selectedState ? 1 : allStateData.length,
       onClick: handleStateBoxClick,
     },
@@ -1063,6 +1110,7 @@ export default function AdminUnits() {
       key: "district",
       label: "District",
       name: selectedDistrict?.name || "Select District",
+      selected: Boolean(selectedDistrict),
       count: districtData.length,
       onClick: handleDistrictBoxClick,
     },
@@ -1070,6 +1118,7 @@ export default function AdminUnits() {
       key: "subdistrict",
       label: "Sub-District",
       name: selectedSubDistrict?.name || "Select Sub-District",
+      selected: Boolean(selectedSubDistrict),
       count: subDistrictData.length,
       onClick: handleSubDistrictBoxClick,
     },
@@ -1077,6 +1126,7 @@ export default function AdminUnits() {
       key: "villageTown",
       label: "Village & Town",
       name: selectedVillageTown?.name || "Select Village & Town",
+      selected: Boolean(selectedVillageTown),
       count: vtScopeTotal,
       onClick: handleVillageTownBoxClick,
     },
@@ -1084,6 +1134,7 @@ export default function AdminUnits() {
       key: "ward",
       label: "Ward",
       name: selectedWard?.name || "Select Ward",
+      selected: Boolean(selectedWard),
       count: scopedWardData.length,
       onClick: handleWardBoxClick,
     },
@@ -1143,53 +1194,7 @@ export default function AdminUnits() {
 
     const visibleRows = sortedTableData.slice(start, end);
 
-    const headers = {
-      state: [
-        ["code", "State Code"],
-        ["name", "State / UT Name"],
-      ],
-      district: [
-        ["stateCode", "State Code"],
-        ["stateName", "State / UT Name"],
-        ["code", "District Code"],
-        ["name", "District Name"],
-      ],
-      subdistrict: [
-        ["stateCode", "State Code"],
-        ["stateName", "State / UT Name"],
-        ["districtCode", "District Code"],
-        ["districtName", "District Name"],
-        ["code", "Sub-District Code"],
-        ["name", "Sub-District Name"],
-      ],
-      villageTown: [
-        ["stateCode", "State Code"],
-        ["stateName", "State / UT Name"],
-        ["districtCode", "District Code"],
-        ["districtName", "District Name"],
-        ["subDistrictCode", "Sub-District Code"],
-        ["subDistrictName", "Sub-District Name"],
-        ["code", "Village / Town Code"],
-        ["name", "Village / Town Name"],
-        ["type", "Type"],
-        ["wardCode", "Ward Code"],
-        ["wardName", "Ward Name"],
-      ],
-      ward: [
-        ["stateCode", "State Code"],
-        ["stateName", "State / UT Name"],
-        ["districtCode", "District Code"],
-        ["districtName", "District Name"],
-        ["subDistrictCode", "Sub-District Code"],
-        ["subDistrictName", "Sub-District Name"],
-        ["villageTownCode", "Village / Town Code"],
-        ["villageTownName", "Village / Town Name"],
-        ["code", "Ward Code"],
-        ["name", "Ward Name"],
-      ],
-    };
-
-    const columns = headers[level] || [];
+    const columns = COLUMNS[level] || [];
     const colSpan = columns.length + 1;
 
     return (
@@ -1208,19 +1213,15 @@ export default function AdminUnits() {
                 <th
                   key={key}
                   className={
-                    ["code", "name", "type"].includes(key)
-                      ? "sortable"
-                      : ""
+                    SORTABLE_KEYS.includes(key) ? "sortable" : ""
                   }
                   onClick={() => {
-                    if (["code", "name", "type"].includes(key)) {
-                      handleSort(key);
-                    }
+                    if (SORTABLE_KEYS.includes(key)) handleSort(key);
                   }}
                 >
                   {label}
 
-                  {["code", "name", "type"].includes(key) && (
+                  {SORTABLE_KEYS.includes(key) && (
                     <span className="sort-icon">
                       {sortIcon(key)}
                     </span>
@@ -1316,30 +1317,35 @@ export default function AdminUnits() {
 
       {/* COUNT BOXES */}
 
-     
-<div className="count-grid">
-  {countBoxes.map((box) => (
-    <button
-      key={box.key}
-      type="button"
-      className={`count-box ${
-        level === box.key ? "active-box" : ""
-      }`}
-      onClick={box.onClick}
-      aria-label={`${box.label}: ${box.name}, count ${box.count}`}
-    >
-      <span className="count-box-label">
-        {box.label}
-      </span>
+      <div className="count-grid">
+        {countBoxes.map((box) => (
+          <button
+            key={box.key}
+            type="button"
+            className={`count-box ${
+              level === box.key ? "active-box" : ""
+            } ${box.selected ? "has-selection" : ""}`}
+            onClick={box.onClick}
+            aria-label={
+              box.selected
+                ? `${box.label}: ${box.name}`
+                : `${box.label}: ${box.name}, count ${box.count}`
+            }
+          >
+            <span className="count-box-label">{box.label}</span>
 
-      <span className="count-box-name">
-        {box.name}
-      </span>
+            {box.selected ? (
+              <span className="count-box-selected">{box.name}</span>
+            ) : (
+              <>
+                <span className="count-box-name">{box.name}</span>
+                <strong>{box.count}</strong>
+              </>
+            )}
+          </button>
+        ))}
+      </div>
 
-      <strong>{box.count}</strong>
-    </button>
-  ))}
-</div>
       {/* BREADCRUMB */}
 
       <div className="breadcrumb">
@@ -1458,4 +1464,3 @@ export default function AdminUnits() {
     </div>
   );
 }
-
