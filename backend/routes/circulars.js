@@ -6,8 +6,20 @@ const { Readable } = require("stream");
 const router = express.Router();
 const db = require("../db/db");
 
-// Folder where local PDF files are stored (change if yours is different)
-const PDF_DIR = path.join(__dirname, "../pdfs");
+/* ================= LOCAL PDF FOLDERS ================= */
+
+// Project root (parent of the routes folder)
+const ROOT = path.join(__dirname, "..");
+
+// Folders where PDFs may be stored. Add your upload folder here if different.
+const PDF_ROOTS = [
+  path.join(ROOT, "pdfs"),
+  path.join(ROOT, "uploads"),
+  path.join(ROOT, "uploads", "circulars"),
+  path.join(ROOT, "public"),
+  path.join(ROOT, "public", "pdfs"),
+  path.join(ROOT, "public", "uploads"),
+];
 
 /* ================= HELPERS ================= */
 
@@ -24,6 +36,54 @@ function makeFileName(documentNo, id, lang) {
     .replace(/[^\w.-]+/g, "_")
     .replace(/^_+|_+$/g, "");
   return `${base || `circular-${id}`}-${lang}.pdf`;
+}
+
+/**
+ * Finds a local PDF from the value saved in the DB.
+ * Handles: "file.pdf", "uploads/file.pdf", "/uploads/circulars/file.pdf",
+ * "/api/uploads/file.pdf", Windows paths, URL-encoded names.
+ */
+function findLocalFile(link) {
+  let clean = String(link || "").trim();
+
+  try {
+    clean = decodeURIComponent(clean);
+  } catch {
+    /* keep as is */
+  }
+
+  clean = clean
+    .replace(/\\/g, "/")
+    .replace(/^\/?api\//i, "")
+    .replace(/^\/+/, "");
+
+  const candidates = [];
+
+  for (const root of PDF_ROOTS) {
+    candidates.push(path.join(root, clean)); // full relative path
+    candidates.push(path.join(root, path.basename(clean))); // filename only
+  }
+
+  candidates.push(path.join(ROOT, clean)); // relative to project root
+
+  for (const candidate of candidates) {
+    const resolved = path.resolve(candidate);
+
+    // security: file must stay inside the project folder
+    if (!resolved.startsWith(path.resolve(ROOT))) continue;
+
+    if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
+      return resolved;
+    }
+  }
+
+  console.error("PDF not found. Link in DB:", link);
+  console.error(
+    "Tried:",
+    candidates.map((c) => path.resolve(c))
+  );
+
+  return null;
 }
 
 /**
@@ -85,9 +145,9 @@ async function sendPdf(req, res, mode) {
     }
 
     /* ---------- Case 2: local file ---------- */
-    const filePath = path.join(PDF_DIR, path.basename(link));
+    const filePath = findLocalFile(link);
 
-    if (!fs.existsSync(filePath)) {
+    if (!filePath) {
       return res.status(404).json({ error: "File not found" });
     }
 
