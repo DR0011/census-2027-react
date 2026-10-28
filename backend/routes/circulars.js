@@ -38,6 +38,36 @@ function makeFileName(documentNo, id, lang) {
   return `${base || `circular-${id}`}-${lang}.pdf`;
 }
 
+const SKIP_DIRS = new Set(["node_modules", ".git"]);
+const fileCache = new Map();
+
+// Search a folder tree for a file with this exact name
+function searchByName(dir, name, depth = 0) {
+  if (depth > 8) return null;
+
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return null;
+  }
+
+  for (const entry of entries) {
+    if (entry.isFile() && entry.name === name) {
+      return path.join(dir, entry.name);
+    }
+  }
+
+  for (const entry of entries) {
+    if (entry.isDirectory() && !SKIP_DIRS.has(entry.name)) {
+      const found = searchByName(path.join(dir, entry.name), name, depth + 1);
+      if (found) return found;
+    }
+  }
+
+  return null;
+}
+
 /**
  * Finds a local PDF from the value saved in the DB.
  * Handles: "file.pdf", "uploads/file.pdf", "/uploads/circulars/file.pdf",
@@ -57,6 +87,11 @@ function findLocalFile(link) {
     .replace(/^\/?api\//i, "")
     .replace(/^\/+/, "");
 
+  const fileName = path.basename(clean);
+
+  const cached = fileCache.get(fileName);
+  if (cached && fs.existsSync(cached)) return cached;
+
   const candidates = [];
 
   for (const root of PDF_ROOTS) {
@@ -75,6 +110,17 @@ function findLocalFile(link) {
     if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
       return resolved;
     }
+  }
+
+  // Last try: search the whole project for this file name
+  const found =
+    searchByName(ROOT, fileName) ||
+    searchByName(process.cwd(), fileName);
+
+  if (found) {
+    fileCache.set(fileName, found);
+    console.log("PDF found at:", found);
+    return found;
   }
 
   console.error("PDF not found. Link in DB:", link);
