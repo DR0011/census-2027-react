@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import "./Documents.css";
 
@@ -30,7 +29,7 @@ function normalizeItem(item) {
   return {
     ...item,
 
-    id: item.id ?? item.document_id ?? null,
+    id: item.id ?? item.document_id ?? item.sr_no ?? null,
 
     documentNo: pick(item, [
       "documentNo",
@@ -151,10 +150,16 @@ function getGoogleDriveFileId(url) {
   return "";
 }
 
-function resolvePdfUrl(url) {
-  if (!url) return "";
+/**
+ * View URL:
+ * - Google Drive link  -> Drive preview page
+ * - Other http(s) link -> same link
+ * - Local file / path  -> backend inline route
+ */
+function getViewUrl(link, id) {
+  if (!link || id === null || id === undefined) return "";
 
-  const text = String(url).trim();
+  const text = String(link).trim();
 
   if (/^https?:\/\//i.test(text)) {
     const fileId = getGoogleDriveFileId(text);
@@ -166,39 +171,21 @@ function resolvePdfUrl(url) {
     return text;
   }
 
-  const origin = API_BASE.replace(/\/api\/?$/, "");
-
-  if (text.startsWith("/api/")) {
-    return `${origin}${text}`;
-  }
-
-  if (text.startsWith("/circulars/")) {
-    return `${origin}/api${text}`;
-  }
-
-  if (text.startsWith("/")) {
-    return `${origin}${text}`;
-  }
-
-  // Assumes backend serves stored filenames at this route.
-  return `${API_BASE}/circulars/pdf/${encodeURIComponent(text)}`;
+  return `${API_URL}/view/${id}`;
 }
 
-function getDownloadUrl(url) {
-  const viewUrl = resolvePdfUrl(url);
-
-  if (!viewUrl) return "";
-
-  if (viewUrl.startsWith(`${API_BASE}/circulars/pdf/`)) {
-    return `${viewUrl}${viewUrl.includes("?") ? "&" : "?"}download=1`;
-  }
-
-  return viewUrl;
+/**
+ * Download URL: always goes through the backend, which sends
+ * Content-Disposition: attachment, so the browser downloads the file.
+ */
+function getDownloadUrl(link, id) {
+  if (!link || id === null || id === undefined) return "";
+  return `${API_URL}/download/${id}`;
 }
 
-function PdfButtons({ url }) {
-  const viewUrl = resolvePdfUrl(url);
-  const downloadUrl = getDownloadUrl(url);
+function PdfButtons({ url, id }) {
+  const viewUrl = getViewUrl(url, id);
+  const downloadUrl = getDownloadUrl(url, id);
 
   if (!viewUrl) {
     return <span className="no-pdf">PDF not available</span>;
@@ -215,15 +202,15 @@ function PdfButtons({ url }) {
         View PDF
       </a>
 
-      <a
-        className="pdf-btn download-btn"
-        href={downloadUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        download
-      >
-        Download PDF
-      </a>
+      {downloadUrl && (
+        <a
+          className="pdf-btn download-btn"
+          href={downloadUrl}
+          download
+        >
+          Download PDF
+        </a>
+      )}
     </div>
   );
 }
@@ -496,7 +483,7 @@ export default function Documents() {
                     <td data-label="Type">{item.type}</td>
 
                     <td data-label="PDF">
-                      <PdfButtons url={item.pdf} />
+                      <PdfButtons url={item.pdf} id={item.id} />
                     </td>
                   </tr>
                 ))}
