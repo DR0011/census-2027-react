@@ -280,15 +280,18 @@ function UserManagement() {
   };
 
   const formatDate = (date) => {
-    if (!date) return "-";
+  if (!date) return "-";
 
-    const parsedDate = new Date(date);
+  const parsedDate = new Date(date);
 
-    if (Number.isNaN(parsedDate.getTime())) return "-";
+  if (Number.isNaN(parsedDate.getTime())) return "-";
 
-    return parsedDate.toLocaleDateString();
-  };
+  const day = String(parsedDate.getDate()).padStart(2, "0");
+  const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
+  const year = parsedDate.getFullYear();
 
+  return `${day}/${month}/${year}`;
+};
   // ======================================================
   // PAGE
   // ======================================================
