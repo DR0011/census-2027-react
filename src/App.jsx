@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   HashRouter,
@@ -33,6 +32,16 @@ const API = "http://localhost:5000/api";
    ROLE PERMISSIONS
 ========================================= */
 
+// Pages visible to both Nodal Officer and Incharge Officer
+const OFFICER_PERMISSIONS = [
+  "administrative_units",
+  "correspondence",
+  "training",
+  "download",
+  "contacts",
+  "change_password",
+];
+
 const ROLE_PERMISSIONS = {
   admin: [
     "home",
@@ -46,15 +55,9 @@ const ROLE_PERMISSIONS = {
     "change_password",
   ],
 
-  nodal_officer: [
-    "administrative_units",
-    "change_password",
-  ],
+  nodal_officer: OFFICER_PERMISSIONS,
 
-  incharge_officer: [
-    "contacts",
-    "change_password",
-  ],
+  incharge_officer: OFFICER_PERMISSIONS,
 };
 
 /* =========================================
@@ -89,7 +92,7 @@ function hasPermission(role, permission) {
 function getDefaultRoute(role) {
   if (role === "admin") return "/";
   if (role === "nodal_officer") return "/admin-units";
-  if (role === "incharge_officer") return "/contacts";
+  if (role === "incharge_officer") return "/admin-units";
 
   return "/login";
 }
@@ -345,7 +348,7 @@ function AuthenticatedApp() {
             }
           />
 
-          {/* ADMIN + NODAL OFFICER */}
+          {/* ADMIN + NODAL OFFICER + INCHARGE OFFICER */}
           <Route
             path="/admin-units"
             element={
@@ -355,7 +358,7 @@ function AuthenticatedApp() {
             }
           />
 
-          {/* NEW: CIRCULARS & DOCUMENTS: ADMIN ONLY */}
+          {/* CIRCULARS & DOCUMENTS: ADMIN ONLY */}
           <Route
             path="/circulars-documents"
             element={
@@ -365,7 +368,7 @@ function AuthenticatedApp() {
             }
           />
 
-          {/* CORRESPONDENCE */}
+          {/* CORRESPONDENCE: ADMIN + OFFICERS */}
           <Route
             path="/correspondence"
             element={
@@ -379,64 +382,70 @@ function AuthenticatedApp() {
           <Route
             path="/correspondence/circular-orig"
             element={
-              <AdminOnly>
+              <ProtectedRoute permission="correspondence">
                 <Circulars />
-              </AdminOnly>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/correspondence/circular-dco"
             element={
-              <AdminOnly>
+              <ProtectedRoute permission="correspondence">
                 <Documents />
-              </AdminOnly>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/correspondence/notification"
             element={
-              <AdminOnly>
+              <ProtectedRoute permission="correspondence">
                 <Notification />
-              </AdminOnly>
+              </ProtectedRoute>
             }
           />
 
           <Route
             path="/correspondence/letters"
             element={
-              <AdminOnly>
+              <ProtectedRoute permission="correspondence">
                 <Letters />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* PDF UPLOAD: ADMIN ONLY */}
+          <Route
+            path="/pdf-upload"
+            element={
+              <AdminOnly>
+                <PdfUpload />
               </AdminOnly>
             }
           />
-          <Route
-  path="/pdf-upload"
-  element={<PdfUpload />}
-/>
 
-          {/* TRAINING: ADMIN ONLY */}
+          {/* TRAINING: ADMIN + OFFICERS */}
           <Route
             path="/training"
             element={
-              <AdminOnly>
+              <ProtectedRoute permission="training">
                 <Training />
-              </AdminOnly>
+              </ProtectedRoute>
             }
           />
 
-          {/* DOWNLOAD: ADMIN ONLY */}
+          {/* DOWNLOAD: ADMIN + OFFICERS */}
           <Route
             path="/download"
             element={
-              <AdminOnly>
+              <ProtectedRoute permission="download">
                 <Download />
-              </AdminOnly>
+              </ProtectedRoute>
             }
           />
 
-          {/* CONTACT OFFICERS */}
+          {/* CONTACT OFFICERS: ADMIN + OFFICERS */}
           <Route
             path="/contacts"
             element={

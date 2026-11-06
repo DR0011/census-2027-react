@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   NavLink,
@@ -33,6 +32,14 @@ function Navbar() {
       return {};
     }
   })();
+
+  const isAdmin = user.role === "admin";
+  const isOfficer =
+    user.role === "nodal_officer" ||
+    user.role === "incharge_officer";
+
+  // Home route for the brand click
+  const homeRoute = isAdmin ? "/" : "/admin-units";
 
   // LOGOUT
   const logout = () => {
@@ -95,12 +102,10 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      {/* BRAND */}
-    
-      {/* BRAND: CLICK TO OPEN HOME PAGE */}
+      {/* BRAND: CLICK TO OPEN ROLE'S HOME PAGE */}
       <div
         className="navbar-brand"
-        onClick={() => navigate("/")}
+        onClick={() => navigate(homeRoute)}
         role="button"
         tabIndex={0}
         aria-label="Census 2027 Home"
@@ -108,7 +113,7 @@ function Navbar() {
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            navigate("/");
+            navigate(homeRoute);
           }
         }}
       >
@@ -116,19 +121,17 @@ function Navbar() {
         <span>Census 2027</span>
       </div>
 
-
       {/* NAVIGATION LINKS */}
       <div className="navbar-links">
         {/* HOME: ADMIN ONLY */}
-        {user.role === "admin" && (
+        {isAdmin && (
           <NavLink to="/" end className={navLinkClass}>
             Home
           </NavLink>
         )}
 
-        {/* ADMIN + NODAL OFFICER */}
-        {(user.role === "admin" ||
-          user.role === "nodal_officer") && (
+        {/* ADMINISTRATIVE UNITS: ADMIN + OFFICERS */}
+        {(isAdmin || isOfficer) && (
           <NavLink
             to="/admin-units"
             className={navLinkClass}
@@ -138,7 +141,7 @@ function Navbar() {
         )}
 
         {/* CIRCULARS & DOCUMENTS: ADMIN ONLY */}
-        {user.role === "admin" && (
+        {isAdmin && (
           <NavLink
             to="/circulars-documents"
             className={navLinkClass}
@@ -148,7 +151,7 @@ function Navbar() {
         )}
 
         {/* PDF UPLOAD: ADMIN ONLY */}
-        {user.role === "admin" && (
+        {isAdmin && (
           <NavLink
             to="/pdf-upload"
             className={navLinkClass}
@@ -157,8 +160,8 @@ function Navbar() {
           </NavLink>
         )}
 
-        {/* CORRESPONDENCE: ADMIN ONLY */}
-        {user.role === "admin" && (
+        {/* CORRESPONDENCE: ADMIN + OFFICERS */}
+        {(isAdmin || isOfficer) && (
           <div className="navbar-dropdown">
             <button
               type="button"
@@ -194,8 +197,8 @@ function Navbar() {
           </div>
         )}
 
-        {/* TRAINING: ADMIN ONLY */}
-        {user.role === "admin" && (
+        {/* TRAINING: ADMIN + OFFICERS */}
+        {(isAdmin || isOfficer) && (
           <NavLink
             to="/training"
             className={navLinkClass}
@@ -204,8 +207,8 @@ function Navbar() {
           </NavLink>
         )}
 
-        {/* DOWNLOAD: ADMIN ONLY */}
-        {user.role === "admin" && (
+        {/* DOWNLOAD: ADMIN + OFFICERS */}
+        {(isAdmin || isOfficer) && (
           <NavLink
             to="/download"
             className={navLinkClass}
@@ -214,9 +217,8 @@ function Navbar() {
           </NavLink>
         )}
 
-        {/* ADMIN + INCHARGE OFFICER */}
-        {(user.role === "admin" ||
-          user.role === "incharge_officer") && (
+        {/* CONTACT OFFICERS: ADMIN + OFFICERS */}
+        {(isAdmin || isOfficer) && (
           <NavLink
             to="/contacts"
             className={navLinkClass}
@@ -226,7 +228,7 @@ function Navbar() {
         )}
 
         {/* USER MANAGEMENT: ADMIN ONLY */}
-        {user.role === "admin" && (
+        {isAdmin && (
           <NavLink
             to="/admin/users"
             className={navLinkClass}
@@ -236,7 +238,7 @@ function Navbar() {
         )}
 
         {/* PASSWORD RESET REQUESTS: ADMIN ONLY */}
-        {user.role === "admin" && (
+        {isAdmin && (
           <NavLink
             to="/admin/password-reset-requests"
             className={navLinkClass}
@@ -291,7 +293,7 @@ function Navbar() {
             </button>
 
             {/* USER MANAGEMENT */}
-            {user.role === "admin" && (
+            {isAdmin && (
               <button
                 type="button"
                 onClick={() => {
@@ -304,7 +306,7 @@ function Navbar() {
             )}
 
             {/* PASSWORD RESET REQUESTS */}
-            {user.role === "admin" && (
+            {isAdmin && (
               <button
                 type="button"
                 onClick={() => {
