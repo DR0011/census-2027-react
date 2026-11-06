@@ -25,15 +25,12 @@ function UserManagement() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Use the same sessionStorage keys as Login.jsx
   const token = sessionStorage.getItem("census_token");
 
   let currentUser = {};
 
   try {
-    currentUser = JSON.parse(
-      sessionStorage.getItem("census_user") || "{}"
-    );
+    currentUser = JSON.parse(sessionStorage.getItem("census_user") || "{}");
   } catch {
     currentUser = {};
   }
@@ -48,18 +45,14 @@ function UserManagement() {
     if (!currentToken) {
       sessionStorage.removeItem("census_user");
       window.location.hash = "#/login";
-
-      throw new Error(
-        "Please login again. Authentication token not found."
-      );
+      throw new Error("Please login again. Authentication token not found.");
     }
 
     const response = await fetch(url, {
+      cache: "no-store", // never use a cached response
       ...options,
       headers: {
-        ...(options.body
-          ? { "Content-Type": "application/json" }
-          : {}),
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
         ...options.headers,
         Authorization: `Bearer ${currentToken}`,
       },
@@ -70,25 +63,19 @@ function UserManagement() {
     if (response.status === 401) {
       sessionStorage.removeItem("census_token");
       sessionStorage.removeItem("census_user");
-
       window.location.hash = "#/login";
-
-      throw new Error(
-        "Session expired or invalid. Please login again."
-      );
+      throw new Error("Session expired or invalid. Please login again.");
     }
 
     if (response.status === 403) {
       throw new Error(
-        data.message ||
-          "You do not have permission to perform this action."
+        data.message || "You do not have permission to perform this action."
       );
     }
 
     if (!response.ok || data.success === false) {
-      throw new Error(
-        data.message || "Request failed. Please try again."
-      );
+      // 409 etc: show the real server message (e.g. "Username already exists")
+      throw new Error(data.message || "Request failed. Please try again.");
     }
 
     return data;
@@ -101,7 +88,6 @@ function UserManagement() {
   const loadUsers = async () => {
     try {
       setLoading(true);
-      setError("");
 
       const data = await apiRequest(`${API_URL}/api/users`);
 
@@ -144,7 +130,7 @@ function UserManagement() {
   };
 
   // ======================================================
-  // OPEN ADD USER
+  // OPEN ADD / EDIT
   // ======================================================
 
   const openAddUser = () => {
@@ -154,10 +140,6 @@ function UserManagement() {
     setSuccess("");
     setShowModal(true);
   };
-
-  // ======================================================
-  // OPEN EDIT USER
-  // ======================================================
 
   const openEditUser = (user) => {
     setEditingUser(user);
@@ -175,6 +157,12 @@ function UserManagement() {
     setShowModal(true);
   };
 
+  const closeModal = () => {
+    if (saving) return;
+    setShowModal(false);
+    setError("");
+  };
+
   // ======================================================
   // SAVE USER: CREATE / UPDATE
   // ======================================================
@@ -185,11 +173,7 @@ function UserManagement() {
     setError("");
     setSuccess("");
 
-    if (
-      !form.username.trim() ||
-      !form.full_name.trim() ||
-      !form.role
-    ) {
+    if (!form.username.trim() || !form.full_name.trim() || !form.role) {
       setError("Username, full name and role are required.");
       return;
     }
@@ -220,7 +204,6 @@ function UserManagement() {
         role: form.role,
       };
 
-      // Send password only when creating or changing it.
       if (form.password) {
         payload.password = form.password;
       }
@@ -230,6 +213,7 @@ function UserManagement() {
         body: JSON.stringify(payload),
       });
 
+      // Close modal only on success
       setShowModal(false);
       setForm({ ...emptyForm });
       setEditingUser(null);
@@ -241,8 +225,10 @@ function UserManagement() {
             : "User updated successfully.")
       );
 
+      // Always reload from the server so the table shows real database data
       await loadUsers();
     } catch (err) {
+      // Modal stays open and the error is shown inside it
       setError(err.message || "Unable to save user.");
     } finally {
       setSaving(false);
@@ -269,10 +255,9 @@ function UserManagement() {
       setError("");
       setSuccess("");
 
-      const data = await apiRequest(
-        `${API_URL}/api/users/${user.id}`,
-        { method: "DELETE" }
-      );
+      const data = await apiRequest(`${API_URL}/api/users/${user.id}`, {
+        method: "DELETE",
+      });
 
       setSuccess(data.message || "User deleted successfully.");
 
@@ -326,7 +311,8 @@ function UserManagement() {
         </button>
       </div>
 
-      {error && (
+      {/* Page-level alerts: hidden while modal is open (modal shows its own) */}
+      {error && !showModal && (
         <div className="alert error" role="alert">
           {error}
         </div>
@@ -393,9 +379,7 @@ function UserManagement() {
                       <button
                         type="button"
                         className="delete-btn"
-                        disabled={
-                          Number(user.id) === Number(currentUser.id)
-                        }
+                        disabled={Number(user.id) === Number(currentUser.id)}
                         onClick={() => handleDelete(user)}
                       >
                         Delete
@@ -426,7 +410,7 @@ function UserManagement() {
               <button
                 type="button"
                 className="close-btn"
-                onClick={() => setShowModal(false)}
+                onClick={closeModal}
                 disabled={saving}
                 aria-label="Close"
               >
@@ -434,7 +418,14 @@ function UserManagement() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            {/* Error shown INSIDE the modal so you can see 409 messages */}
+            {error && (
+              <div className="alert error" role="alert">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} autoComplete="off">
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="username">Username *</label>
@@ -445,6 +436,7 @@ function UserManagement() {
                     value={form.username}
                     onChange={handleChange}
                     placeholder="Enter username"
+                    autoComplete="off"
                     required
                     disabled={saving}
                   />
@@ -459,6 +451,7 @@ function UserManagement() {
                     value={form.full_name}
                     onChange={handleChange}
                     placeholder="Enter full name"
+                    autoComplete="off"
                     required
                     disabled={saving}
                   />
@@ -476,6 +469,7 @@ function UserManagement() {
                     value={form.email}
                     onChange={handleChange}
                     placeholder="Enter email"
+                    autoComplete="off"
                     disabled={saving}
                   />
                 </div>
@@ -492,12 +486,8 @@ function UserManagement() {
                     disabled={saving}
                   >
                     <option value="admin">Admin</option>
-                    <option value="nodal_officer">
-                      Nodal Officer
-                    </option>
-                    <option value="incharge_officer">
-                      Incharge Officer
-                    </option>
+                    <option value="nodal_officer">Nodal Officer</option>
+                    <option value="incharge_officer">Incharge Officer</option>
                   </select>
                 </div>
               </div>
@@ -532,17 +522,13 @@ function UserManagement() {
                 <button
                   type="button"
                   className="cancel-btn"
-                  onClick={() => setShowModal(false)}
+                  onClick={closeModal}
                   disabled={saving}
                 >
                   Cancel
                 </button>
 
-                <button
-                  type="submit"
-                  className="save-btn"
-                  disabled={saving}
-                >
+                <button type="submit" className="save-btn" disabled={saving}>
                   {saving
                     ? "Saving..."
                     : editingUser
